@@ -1,0 +1,3 @@
+<launch>
+  <node name="motor_interface" pkg="hover_bringup" type="motor_interface_node" output="screen" />
+</launch>

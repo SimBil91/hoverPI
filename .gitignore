@@ -1,3 +1,9 @@
+# ROS
+devel
+build
+install
+.catkin_workspace
+
 # Prerequisites
 *.d
 
