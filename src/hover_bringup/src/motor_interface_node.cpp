@@ -6,7 +6,7 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "motor_interface_node");
   ros::NodeHandle n;
-  ros::Rate loop_rate(10);
+  ros::Rate loop_rate(100);
   // Setup serial connection
   int fd ;
   int count ;
@@ -35,10 +35,20 @@ int main(int argc, char **argv)
   while (ros::ok())
   {
     ros::spinOnce();
+    int count = 0;
+    std::vector<char> bytes_received;
     while (serialDataAvail (fd))
     {
-      ROS_INFO(" -> %3d", serialGetchar (fd)) ;
+      char received_byte = serialGetchar(fd);
+      ROS_DEBUG("%d -> %3d", count, received_byte);
+      bytes_received.push_back(received_byte);
+      if (bytes_received.size() == 2 && bytes_received[0] == '/' && bytes_received[1] == '\n')
+      {
+        ROS_INFO("New Command requested by firmware.");
+      }
+      count++;
     }
+    ROS_DEBUG("_____");
     loop_rate.sleep();
   }
   return 0;
