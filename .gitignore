@@ -3,8 +3,7 @@ devel
 build
 install
 .catkin_workspace
-src/cob_base_velocity_smoother
-src/ros_controllers
+src/external
 # Prerequisites
 *.d
 
