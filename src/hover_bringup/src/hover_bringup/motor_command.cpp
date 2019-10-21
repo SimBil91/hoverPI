@@ -144,15 +144,8 @@ uint16_t MotorCommand::calcCRC(uint8_t *ptr, int count)
 void MotorCommand::sendBuffer(uint8_t buffer[], uint8_t length)
 {
   uint8_t index = 0;
-  //auto written = write(fd, buffer, length);
+  auto written = write(fd, buffer, length);
   //ROS_INFO_STREAM(written);
-  for(; index < length; index++)
-  {
-    serialPutchar(fd, buffer[index]) ;
-    //std::cout << "s" << (int)buffer[index] << "  ";
-    ros::Duration(0.002).sleep();
-  }
-  //std::cout << std::endl;
 }
 
 void MotorCommand::sendDebug()
