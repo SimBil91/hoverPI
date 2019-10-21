@@ -3,6 +3,7 @@ devel
 build
 install
 .catkin_workspace
+src/cob_base_velocity_smoother
 
 # Prerequisites
 *.d
