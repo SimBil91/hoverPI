@@ -8,10 +8,18 @@ MotorCommand::MotorCommand()
 
 }
 
+void MotorCommand::cmdVelCallback(const geometry_msgs::TwistConstPtr& vel)
+{
+  m_current_cmd_vel = *vel;   
+}
+
 void MotorCommand::initMotorSerial(void)
 {
+  ros::NodeHandle nh;
+
+  m_cmd_vel_sub = nh.subscribe("cmd_vel", 1, &MotorCommand::cmdVelCallback, this);
   // Setup serial connection
-  if ((fd = serialOpen("/dev/serial0", 19200)) < 0)
+  if ((fd = serialOpen("/dev/ttyAMA1", 19200)) < 0)
   {
     ROS_ERROR_STREAM("Unable to open serial device.");
     return;
@@ -32,23 +40,10 @@ void MotorCommand::initMotorSerial(void)
   }
 }
 
-void MotorCommand::setSpeed(uint16_t data, float factor)
+void MotorCommand::setSpeed(int32_t speedM, int32_t speedS)
 {
-  int16_t tempValue = ((float)data * 2 ) - 3000.0;  // Value -1000 to 1000
-  tempValue *= factor;
-  tempValue = CLAMP(tempValue, -1000, 1000);        // Avoid calculation failure
-  speedValue = tempValue;
-}
-
-void MotorCommand::setSteer(uint16_t data)
-{
-  int16_t tempValue = ((float)data * 2 ) - 3000.0;  // Value -1000 to 1000
-  tempValue = CLAMP(tempValue, -1000, 1000);        // Avoid calculation failure
-  if (speedValue < 0)
-  {
-    steerValue *= -1;
-  }
-  steerValue = tempValue;
+  speedValueM = CLAMP(speedM, -1000, 1000); 
+  speedValueS = CLAMP(speedS, -1000, 1000); 
 }
 
 void MotorCommand::checkForRequest(void)
@@ -62,7 +57,7 @@ void MotorCommand::checkForRequest(void)
       bytes_received.push_back(received_byte);
       if (bytes_received.size() == 2 && bytes_received[0] == '/' && bytes_received[1] == '\n')
       {
-        //ROS_INFO("New Command requested by firmware. Sending velocity commands.");
+        ROS_INFO("New Command requested by firmware. Sending velocity commands.");
         //sendAnswer();
       }
       count++;
@@ -72,6 +67,12 @@ void MotorCommand::checkForRequest(void)
 
 void MotorCommand::sendAnswer(void)
 {
+  // Set Speed according to current CmdVel
+  int32_t speedL, speedR;
+  speedL = m_current_cmd_vel.linear.x * 300;
+  speedR = speedL;
+  setSpeed(speedL, speedR);
+  
   int index = 0;
   uint8_t buffer[8];
   uint8_t byte1 = 0;
@@ -89,13 +90,13 @@ void MotorCommand::sendAnswer(void)
   sendByte |= (lowerLEDMaster << 1);
   sendByte |= (upperLEDMaster << 0);
   
-  uint16_t speedValue_Format = (uint16_t)(speedValue);
-  byte1 |= (speedValue_Format >> 8) & 0xFF;
-  byte2 |= speedValue_Format & 0xFF;
+  uint16_t speedValueM_Format = (uint16_t)(speedValueM);
+  byte1 |= (speedValueM_Format >> 8) & 0xFF;
+  byte2 |= speedValueM_Format & 0xFF;
 
-  uint16_t steerValue_Format = (uint16_t)(steerValue);
-  byte3 |= (steerValue_Format >> 8) & 0xFF;
-  byte4 |= steerValue_Format & 0xFF;
+  uint16_t speedValueS_Format = (uint16_t)(speedValueS);
+  byte3 |= (speedValueS_Format >> 8) & 0xFF;
+  byte4 |= speedValueS_Format & 0xFF;
   
   // Send answer
   buffer[index++] = '/';
@@ -143,15 +144,15 @@ uint16_t MotorCommand::calcCRC(uint8_t *ptr, int count)
 void MotorCommand::sendBuffer(uint8_t buffer[], uint8_t length)
 {
   uint8_t index = 0;
-  auto written = write(fd, buffer, length);
+  //auto written = write(fd, buffer, length);
   //ROS_INFO_STREAM(written);
   for(; index < length; index++)
   {
-    //serialPutchar(fd, buffer[index]) ;
-    //std::cout << (int)buffer[index] << "  ";
-    ros::Duration(0.1).sleep();
+    serialPutchar(fd, buffer[index]) ;
+    //std::cout << "s" << (int)buffer[index] << "  ";
+    ros::Duration(0.002).sleep();
   }
-  std::cout << std::endl;
+  //std::cout << std::endl;
 }
 
 void MotorCommand::sendDebug()

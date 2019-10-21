@@ -9,7 +9,6 @@ int main(int argc, char **argv)
   ros::Rate loop_rate(100);
   auto motors = hover_bringup::MotorCommand();
   motors.initMotorSerial();
-
   while (ros::ok())
   {
     motors.sendAnswer();

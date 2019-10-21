@@ -3,6 +3,7 @@
 #include <wiringPi.h>
 #include <inttypes.h>
 #include <ros/ros.h>
+#include <geometry_msgs/Twist.h>
 
 #define ABS(a) (((a) < 0.0) ? -(a) : (a))
 #define CLAMP(x, low, high) (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
@@ -22,7 +23,7 @@ class MotorCommand
     //----------------------------------------------------------------------------
     // Sets the speed value
     //----------------------------------------------------------------------------
-    void setSpeed(uint16_t data, float factor);
+    void setSpeed(int32_t speedM, int32_t speedS);
 
     //----------------------------------------------------------------------------
     // Sets the steering value
@@ -41,12 +42,14 @@ class MotorCommand
 
     void checkForRequest();
 
+    void cmdVelCallback(const geometry_msgs::TwistConstPtr&  vel);
+
 private:
     void sendBuffer(uint8_t buffer[], uint8_t length);
     uint16_t calcCRC(uint8_t *ptr, int count);
 
-    int32_t speedValue = 300;
-    int32_t steerValue = 0;
+    int32_t speedValueM = 0;
+    int32_t speedValueS = 0;
     uint8_t upperLEDMaster = 0;
     uint8_t lowerLEDMaster = 0;
     uint8_t mosfetOutMaster = 0;
@@ -56,6 +59,8 @@ private:
     uint8_t beepsBackwards = 0;
     uint8_t activateWeakening = 0;
     int fd;
+    ros::Subscriber m_cmd_vel_sub;
+    geometry_msgs::Twist m_current_cmd_vel;
 };
 
 }
