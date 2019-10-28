@@ -11,7 +11,7 @@ int main(int argc, char **argv)
   motors.initMotorSerial();
   while (ros::ok())
   {
-    motors.sendAnswer();
+    motors.sendJointCommands();
     ros::spinOnce();
     loop_rate.sleep();
   }

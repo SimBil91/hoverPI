@@ -65,9 +65,10 @@ void MotorCommand::checkForRequest(void)
     ROS_INFO("%d Bytes_____", count);
 }
 
-void MotorCommand::sendAnswer(void)
+void MotorCommand::sendJointCommands(void)
 {
   // Set Speed according to current CmdVel
+  double v_l, v_r;
   int32_t speedL, speedR;
   speedL = m_current_cmd_vel.linear.x * 300;
   speedR = speedL;
@@ -143,14 +144,7 @@ uint16_t MotorCommand::calcCRC(uint8_t *ptr, int count)
 
 void MotorCommand::sendBuffer(uint8_t buffer[], uint8_t length)
 {
-  uint8_t index = 0;
   auto written = write(fd, buffer, length);
-  //ROS_INFO_STREAM(written);
-}
-
-void MotorCommand::sendDebug()
-{
-
 }
 
 }

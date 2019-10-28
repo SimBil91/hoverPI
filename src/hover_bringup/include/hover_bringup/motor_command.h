@@ -34,13 +34,11 @@ class MotorCommand
     //----------------------------------------------------------------------------
     // Sends answer to master device
     //----------------------------------------------------------------------------
-    void sendAnswer(void);
+    void sendJointCommands(void);
 
     //----------------------------------------------------------------------------
     // Sends debug infos
     //----------------------------------------------------------------------------
-    void sendDebug();
-
     void checkForRequest();
 
     void cmdVelCallback(const geometry_msgs::TwistConstPtr&  vel);
