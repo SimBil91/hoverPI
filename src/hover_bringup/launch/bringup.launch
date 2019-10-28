@@ -1,4 +1,14 @@
 <launch>
   <include file="$(find hover_bringup)/launch/velocity_smoother.launch" />
   <node name="motor_interface" pkg="hover_bringup" type="motor_interface_node" output="screen" />
+
+  <!-- Laser Scanner RPLidar -->
+  <node name="rplidarNode"          pkg="rplidar_ros"  type="rplidarNode" output="screen">
+    <param name="serial_port"         type="string" value="/dev/ttyUSB0"/>  
+    <param name="serial_baudrate"     type="int"    value="115200"/><!--A1/A2 -->
+    <param name="frame_id"            type="string" value="base_laser_link"/>
+    <param name="inverted"            type="bool"   value="false"/>
+    <param name="angle_compensate"    type="bool"   value="true"/>
+    <remap from="scan" to="laserscan" />
+  </node>
 </launch>

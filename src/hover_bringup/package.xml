@@ -53,16 +53,27 @@
   <build_depend>std_msgs</build_depend>
   <build_depend>geometry_msgs</build_depend>
   <build_depend>cob_base_velocity_smoother</build_depend>
+  <build_depend>diff_drive_controller</build_depend>
+  <build_depend>controller_interface</build_depend>
+  <build_depend>realtime_tools</build_depend>
 
   <build_export_depend>roscpp</build_export_depend>
   <build_export_depend>std_msgs</build_export_depend>
   <build_export_depend>geometry_msgs</build_export_depend>
   <build_export_depend>cob_base_velocity_smoother</build_export_depend>
+  <build_export_depend>diff_drive_controller</build_export_depend>
+  <build_export_depend>controller_interface</build_export_depend>
+  <build_export_depend>realtime_tools</build_export_depend>
 
   <exec_depend>roscpp</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>cob_base_velocity_smoother</exec_depend>
+  <exec_depend>diff_drive_controller</exec_depend>
+  <exec_depend>controller_interface</exec_depend>
+  <exec_depend>realtime_tools</exec_depend>
+
+  
 
 
   <!-- The export tag contains other, unspecified, tags -->

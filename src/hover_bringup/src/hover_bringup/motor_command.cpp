@@ -5,7 +5,7 @@ namespace hover_bringup
 
 MotorCommand::MotorCommand()
 {
-
+  diff_drive = std::make_shared<diff_drive_controller::DiffDriveController>();
 }
 
 void MotorCommand::cmdVelCallback(const geometry_msgs::TwistConstPtr& vel)

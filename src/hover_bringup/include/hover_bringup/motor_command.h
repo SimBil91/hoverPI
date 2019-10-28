@@ -4,6 +4,7 @@
 #include <inttypes.h>
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
+#include <diff_drive_controller/diff_drive_controller.h>
 
 #define ABS(a) (((a) < 0.0) ? -(a) : (a))
 #define CLAMP(x, low, high) (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
@@ -61,6 +62,8 @@ private:
     int fd;
     ros::Subscriber m_cmd_vel_sub;
     geometry_msgs::Twist m_current_cmd_vel;
+
+    std::shared_ptr<diff_drive_controller::DiffDriveController> diff_drive;
 };
 
 }

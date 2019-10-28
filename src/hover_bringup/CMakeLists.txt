@@ -11,6 +11,9 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
   geometry_msgs
+  diff_drive_controller
+  controller_interface
+  realtime_tools
 )
 
 ## System dependencies are found with CMake's conventions
