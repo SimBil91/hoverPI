@@ -60,8 +60,9 @@ private:
     int fd;
     ros::Subscriber m_cmd_vel_sub;
     geometry_msgs::Twist m_current_cmd_vel;
-
-    std::shared_ptr<diff_drive_controller::DiffDriveController> diff_drive;
+    double m_wheel_radius;
+    double m_wheel_separation;
+    std::shared_ptr<diff_drive_controller::DiffDriveController> m_diff_drive;
 };
 
 }

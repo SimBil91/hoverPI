@@ -5,7 +5,7 @@ namespace hover_bringup
 
 MotorCommand::MotorCommand()
 {
-  diff_drive = std::make_shared<diff_drive_controller::DiffDriveController>();
+  m_diff_drive = std::make_shared<diff_drive_controller::DiffDriveController>();
 }
 
 void MotorCommand::cmdVelCallback(const geometry_msgs::TwistConstPtr& vel)
@@ -16,6 +16,9 @@ void MotorCommand::cmdVelCallback(const geometry_msgs::TwistConstPtr& vel)
 void MotorCommand::initMotorSerial(void)
 {
   ros::NodeHandle nh;
+  ros::NodeHandle nr("~");
+  nr.param<double>("wheel_separation", m_wheel_separation, 0.5);
+  nr.param<double>("wheel_radius", m_wheel_radius, 0.05);
 
   m_cmd_vel_sub = nh.subscribe("cmd_vel", 1, &MotorCommand::cmdVelCallback, this);
   // Setup serial connection
@@ -70,10 +73,10 @@ void MotorCommand::sendJointCommands(void)
   // Set Speed according to current CmdVel
   double v_l, v_r;
   int32_t speedL, speedR;
-  speedL = m_current_cmd_vel.linear.x * 300;
-  speedR = speedL;
+  speedL = 100 * (m_current_cmd_vel.linear.x - m_wheel_separation / 2 * m_current_cmd_vel.angular.z) / m_wheel_radius;
+  speedR = 100 * (m_current_cmd_vel.linear.x + m_wheel_separation / 2 * m_current_cmd_vel.angular.z) / m_wheel_radius;
   setSpeed(speedL, speedR);
-  
+  ROS_DEBUG_STREAM_THROTTLE(0.1, speedL << " " << speedR);
   int index = 0;
   uint8_t buffer[8];
   uint8_t byte1 = 0;
