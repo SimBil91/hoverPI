@@ -39,7 +39,7 @@ class MotorCommand
     //----------------------------------------------------------------------------
     // Sends debug infos
     //----------------------------------------------------------------------------
-    void checkForRequest();
+    void getJointState();
 
     void cmdVelCallback(const geometry_msgs::TwistConstPtr&  vel);
 
@@ -49,6 +49,8 @@ private:
 
     int32_t speedValueM = 0;
     int32_t speedValueS = 0;
+    int32_t m_encoderM = 0;
+    int32_t m_encoderS = 0;
     uint8_t upperLEDMaster = 0;
     uint8_t lowerLEDMaster = 0;
     uint8_t mosfetOutMaster = 0;

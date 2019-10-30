@@ -12,6 +12,7 @@ int main(int argc, char **argv)
   while (ros::ok())
   {
     motors.sendJointCommands();
+    motors.getJointState();
     ros::spinOnce();
     loop_rate.sleep();
   }

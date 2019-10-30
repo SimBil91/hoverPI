@@ -49,23 +49,40 @@ void MotorCommand::setSpeed(int32_t speedM, int32_t speedS)
   speedValueS = CLAMP(speedS, -1000, 1000); 
 }
 
-void MotorCommand::checkForRequest(void)
+void MotorCommand::getJointState(void)
 {
+    const int num_bytes = 12;
     int count = 0;
-    std::vector<char> bytes_received;
-    while (serialDataAvail(fd))
+    // Check Crc
+    uint8_t buffer[num_bytes];
+    while (serialDataAvail(fd) && count < num_bytes)
     {
-      char received_byte = serialGetchar(fd);
-      ROS_INFO("%d -> %3d", count, received_byte);
-      bytes_received.push_back(received_byte);
-      if (bytes_received.size() == 2 && bytes_received[0] == '/' && bytes_received[1] == '\n')
+      uint8_t received_byte = serialGetchar(fd);
+      if (received_byte  == '/')
       {
-        ROS_INFO("New Command requested by firmware. Sending velocity commands.");
-        //sendAnswer();
+        count = 0;
       }
+      buffer[count] = received_byte;
       count++;
+      if (count == num_bytes)
+      {
+        if (received_byte == '\n')
+        {
+          // Calc crc
+          uint16_t crc = calcCRC(buffer, num_bytes - 3);
+          if ( buffer[num_bytes - 3] == ((crc >> 8) & 0xFF) && buffer[num_bytes - 2] == (crc & 0xFF))
+          {
+            m_encoderM = (int32_t)((buffer[1] << 24) | (buffer[2] << 16) | (buffer[3] << 8) | buffer[4]);
+            m_encoderS = (int32_t)((buffer[5] << 24) | (buffer[6] << 16) | (buffer[7] << 8) | buffer[8]);
+            ROS_INFO_STREAM("Got new Joint States. M: " << m_encoderM / 30.0 << " rad. S: " << m_encoderS / 30.0 << " rad");
+          }
+        }
+        else
+        {
+          ROS_WARN_THROTTLE(1.0, "Received too many bytes");
+        }
+      }
     }
-    ROS_INFO("%d Bytes_____", count);
 }
 
 void MotorCommand::sendJointCommands(void)
