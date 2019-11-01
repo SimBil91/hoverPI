@@ -49,8 +49,14 @@ private:
 
     int32_t speedValueM = 0;
     int32_t speedValueS = 0;
-    int32_t m_encoderM = 0;
-    int32_t m_encoderS = 0;
+    double m_cmd_vel_l = 0;
+    double m_cmd_vel_r = 0;
+    double m_joint_pos_l = 0;
+    double m_joint_pos_r = 0;
+    double m_joint_vel_l = 0;
+    double m_joint_vel_r = 0;
+    double m_joint_eff_l = 0;
+    double m_joint_eff_r = 0;    
     uint8_t upperLEDMaster = 0;
     uint8_t lowerLEDMaster = 0;
     uint8_t mosfetOutMaster = 0;
@@ -64,6 +70,7 @@ private:
     geometry_msgs::Twist m_current_cmd_vel;
     double m_wheel_radius;
     double m_wheel_separation;
+    hardware_interface::VelocityJointInterface m_hw;
     std::shared_ptr<diff_drive_controller::DiffDriveController> m_diff_drive;
 };
 

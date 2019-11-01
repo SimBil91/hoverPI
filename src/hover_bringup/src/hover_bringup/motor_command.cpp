@@ -17,6 +17,15 @@ void MotorCommand::initMotorSerial(void)
 {
   ros::NodeHandle nh;
   ros::NodeHandle nr("~");
+  // Create joint state handles
+  hardware_interface::JointStateHandle state_handle_left_wheel("left_wheel", &m_joint_pos_l, &m_joint_vel_l, &m_joint_eff_l);
+  hardware_interface::JointHandle handle_left_wheel(state_handle_left_wheel, &m_cmd_vel_l);
+  m_hw.registerHandle(handle_left_wheel);
+  hardware_interface::JointStateHandle state_handle_right_wheel("right_wheel", &m_joint_pos_r, &m_joint_vel_r, &m_joint_eff_r);
+  hardware_interface::JointHandle handle_right_wheel(state_handle_right_wheel, &m_cmd_vel_r);
+  m_hw.registerHandle(handle_right_wheel);
+  m_diff_drive->init(&m_hw, nh, nr);
+
   nr.param<double>("wheel_separation", m_wheel_separation, 0.5);
   nr.param<double>("wheel_radius", m_wheel_radius, 0.05);
 
@@ -72,9 +81,10 @@ void MotorCommand::getJointState(void)
           uint16_t crc = calcCRC(buffer, num_bytes - 3);
           if ( buffer[num_bytes - 3] == ((crc >> 8) & 0xFF) && buffer[num_bytes - 2] == (crc & 0xFF))
           {
-            m_encoderM = (int32_t)((buffer[1] << 24) | (buffer[2] << 16) | (buffer[3] << 8) | buffer[4]);
-            m_encoderS = (int32_t)((buffer[5] << 24) | (buffer[6] << 16) | (buffer[7] << 8) | buffer[8]);
-            ROS_INFO_STREAM("Got new Joint States. M: " << m_encoderM / 30.0 << " rad. S: " << m_encoderS / 30.0 << " rad");
+            m_joint_pos_l = (double)((int32_t)((buffer[1] << 24) | (buffer[2] << 16) | (buffer[3] << 8) | buffer[4])) / 30.0 * M_PI;
+            m_joint_pos_r = (double)((int32_t)((buffer[5] << 24) | (buffer[6] << 16) | (buffer[7] << 8) | buffer[8])) / 30.0 * M_PI;
+            m_diff_drive->update(ros::Time::now(), ros::Duration(0));
+            ROS_INFO_STREAM("Got new Joint States. M: " << m_joint_pos_l << " rad. S: " << m_joint_pos_r << " rad");
           }
         }
         else
@@ -90,8 +100,8 @@ void MotorCommand::sendJointCommands(void)
   // Set Speed according to current CmdVel
   double v_l, v_r;
   int32_t speedL, speedR;
-  speedL = 100 * (m_current_cmd_vel.linear.x - m_wheel_separation / 2 * m_current_cmd_vel.angular.z) / m_wheel_radius;
-  speedR = 100 * (m_current_cmd_vel.linear.x + m_wheel_separation / 2 * m_current_cmd_vel.angular.z) / m_wheel_radius;
+  speedL = 50 * (m_current_cmd_vel.linear.x - m_wheel_separation / 2 * m_current_cmd_vel.angular.z) / m_wheel_radius;
+  speedR = 50 * (m_current_cmd_vel.linear.x + m_wheel_separation / 2 * m_current_cmd_vel.angular.z) / m_wheel_radius;
   setSpeed(speedL, speedR);
   ROS_DEBUG_STREAM_THROTTLE(0.1, speedL << " " << speedR);
   int index = 0;

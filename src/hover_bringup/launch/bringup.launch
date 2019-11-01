@@ -1,4 +1,10 @@
 <launch>
+
+  <!-- launch robot state publisher -->
+  <param name="robot_description" textfile="$(find hover_bringup)/urdf/hoverpi.urdf" />
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" /> 
+
+  <!-- velocity smoother -->
   <include file="$(find hover_bringup)/launch/velocity_smoother.launch" />
 
   <!-- Teleop-->
@@ -7,6 +13,9 @@
   <node name="motor_interface" pkg="hover_bringup" type="motor_interface_node" output="screen" >
     <param name="wheel_separation" value="0.5"/>
     <param name="wheel_radius" value="0.09"/>
+    <param name="left_wheel" value="left_wheel"/>
+    <param name="right_wheel" value="right_wheel"/>
+
   </node>
 
   <!-- Laser Scanner RPLidar -->
