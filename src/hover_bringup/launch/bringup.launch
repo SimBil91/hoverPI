@@ -1,7 +1,7 @@
 <launch>
 
   <!-- launch robot state publisher -->
-  <param name="robot_description" textfile="$(find hover_bringup)/urdf/hoverpi.urdf" />
+  <param name="robot_description" command="$(find xacro)/xacro.py $(find hover_bringup)/urdf/hoverpi.urdf.xacro" />
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" /> 
 
   <!-- velocity smoother -->
@@ -15,7 +15,6 @@
     <param name="wheel_radius" value="0.09"/>
     <param name="left_wheel" value="left_wheel"/>
     <param name="right_wheel" value="right_wheel"/>
-
   </node>
 
   <!-- Laser Scanner RPLidar -->
@@ -25,6 +24,7 @@
     <param name="frame_id"            type="string" value="base_laser_link"/>
     <param name="inverted"            type="bool"   value="false"/>
     <param name="angle_compensate"    type="bool"   value="true"/>
+    <param name="scan_mode"           type="string" value="Boost"/>
     <remap from="scan" to="laserscan" />
   </node>
 </launch>
