@@ -28,68 +28,57 @@
 
   <!-- PROPERTY LIST -->
   <!--All units in m-kg-s-radians unit system -->
-  <property name="M_PI" value="3.1415926535897931" />
-  <property name="M_PI_2" value="1.570796327" />
-  <property name="DEG_TO_RAD" value="0.017453293" />
+  <xacro:property name="M_PI" value="3.1415926535897931" />
+  <xacro:property name="M_PI_2" value="1.570796327" />
+  <xacro:property name="DEG_TO_RAD" value="0.017453293" />
 
   <!-- Main body radius and height -->
   <!-- Main Body Cylinder base   -->
-  <property name="base_height" value="0.04" />
-  <property name="base_radius" value="0.25" />
-  <property name="base_mass" value="20" />
+  <xacro:property name="base_height" value="0.04" />
+  <xacro:property name="base_radius" value="0.25" />
+  <xacro:property name="base_mass" value="20" />
   <!-- in kg-->
 
-  <property name="laser_height" value="0.05" />
+  <xacro:property name="laser_height" value="0.05" />
 
   <!-- caster wheel radius and height -->
   <!-- caster wheel mass -->
-  <property name="caster_f_height" value="0.04" />
-  <property name="caster_f_radius" value="0.040" />
-  <property name="caster_f_mass" value="0.5" />
+  <xacro:property name="caster_f_height" value="0.04" />
+  <xacro:property name="caster_f_radius" value="0.040" />
+  <xacro:property name="caster_f_mass" value="0.5" />
   <!-- in kg-->
 
 
 
   <!-- caster wheel radius and height -->
   <!-- caster wheel mass -->
-  <property name="caster_b_height" value="0.04" />
-  <property name="caster_b_radius" value="0.040" />
-  <property name="caster_b_mass" value="0.5" />
+  <xacro:property name="caster_b_height" value="0.04" />
+  <xacro:property name="caster_b_radius" value="0.040" />
+  <xacro:property name="caster_b_mass" value="0.5" />
   <!-- in kg-->
 
   <!-- Wheels -->
 
-  <property name="wheel_mass" value="2.5" />
+  <xacro:property name="wheel_mass" value="2.5" />
   <!-- in kg-->
 
-  <property name="base_x_origin_to_wheel_origin" value="0.25" />
-  <property name="base_y_origin_to_wheel_origin" value="0.55" />
-  <property name="base_z_origin_to_wheel_origin" value="0.0" />
+  <xacro:property name="base_x_origin_to_wheel_origin" value="0.25" />
+  <xacro:property name="base_y_origin_to_wheel_origin" value="0.55" />
+  <xacro:property name="base_z_origin_to_wheel_origin" value="0.0" />
 
 
   <!-- Hokuyo Laser scanner -->
-  <property name="laser_size" value="0.05" />
+  <xacro:property name="laser_size" value="0.05" />
 
   <!-- Macro for calculating inertia of cylinder -->
-  <macro name="cylinder_inertia" params="m r h">
+  <xacro:macro name="cylinder_inertia" params="m r h">
     <inertia ixx="${m*(3*r*r+h*h)/12}" ixy = "0" ixz = "0" iyy="${m*(3*r*r+h*h)/12}" iyz = "0" izz="${m*r*r/2}" />
-  </macro>
+  </xacro:macro>
 
 
   <!-- BASE-FOOTPRINT -->
   <!-- base_footprint is a fictitious link(frame) that is on the ground right below base_link origin -->
   <link name="base_footprint">
-    <inertial>
-      <mass value="0.0001" />
-      <origin xyz="0 0 0" />
-      <inertia ixx="0.0001" ixy="0.0" ixz="0.0" iyy="0.0001" iyz="0.0" izz="0.0001" />
-    </inertial>
-    <visual>
-      <origin xyz="0 0 0" rpy="0 0 0" />
-      <geometry>
-        <box size="0.001 0.001 0.001" />
-      </geometry>
-    </visual>
   </link>
 
   <gazebo reference="base_footprint">
