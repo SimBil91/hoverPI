@@ -4,6 +4,7 @@ build
 install
 .catkin_workspace
 src/external
+.vscode
 # Prerequisites
 *.d
 

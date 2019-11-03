@@ -15,6 +15,11 @@
     <param name="wheel_radius" value="0.09"/>
     <param name="left_wheel" value="left_wheel"/>
     <param name="right_wheel" value="right_wheel"/>
+    <param name="publish_rate" value="50"/>
+    <remap from="~odom" to="/odom" />
+
+    <rosparam param="pose_covariance_diagonal"> [0.001, 0.001, 1000000.0, 1000000.0, 1000000.0, 1000.0] </rosparam>
+    <rosparam param="twist_covariance_diagonal"> [0.001, 0.001, 1000000.0, 1000000.0, 1000000.0, 1000.0] </rosparam>
   </node>
 
   <!-- Laser Scanner RPLidar -->

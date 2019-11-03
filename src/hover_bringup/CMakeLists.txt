@@ -11,8 +11,8 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
   geometry_msgs
-  diff_drive_controller
   controller_interface
+  diff_drive_controller
   realtime_tools
 )
 
