@@ -5,6 +5,7 @@
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
 #include <diff_drive_controller/diff_drive_controller.h>
+#include <sensor_msgs/JointState.h>
 
 #define ABS(a) (((a) < 0.0) ? -(a) : (a))
 #define CLAMP(x, low, high) (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
@@ -19,7 +20,7 @@ class MotorCommand
     //----------------------------------------------------------------------------
     // Initializes the steering serial
     //----------------------------------------------------------------------------
-    void initMotorSerial();
+    void init();
 
     //----------------------------------------------------------------------------
     // Sets the speed value
@@ -65,11 +66,15 @@ private:
     uint8_t mosfetOutSlave = 0;
     uint8_t beepsBackwards = 0;
     uint8_t activateWeakening = 0;
-    int fd;
+    int m_fd;
     ros::Subscriber m_cmd_vel_sub;
+    ros::Publisher m_joint_states_pub;
+    sensor_msgs::JointState m_js;
     geometry_msgs::Twist m_current_cmd_vel;
     double m_wheel_radius;
     double m_wheel_separation;
+    std::string m_left_wheel_name;
+    std::string m_right_wheel_name;
     hardware_interface::VelocityJointInterface m_hw;
     std::shared_ptr<diff_drive_controller::DiffDriveController> m_diff_drive;
 };

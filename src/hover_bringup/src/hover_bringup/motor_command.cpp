@@ -13,25 +13,34 @@ void MotorCommand::cmdVelCallback(const geometry_msgs::TwistConstPtr& vel)
   m_current_cmd_vel = *vel;   
 }
 
-void MotorCommand::initMotorSerial(void)
+void MotorCommand::init(void)
 {
   ros::NodeHandle nh;
   ros::NodeHandle nr("~");
+  // Load Params
+  nr.param<double>("wheel_separation", m_wheel_separation, 0.5);
+  nr.param<double>("wheel_radius", m_wheel_radius, 0.05);
+  nr.param<std::string>("left_wheel_name", m_left_wheel_name, "left_wheel");
+  nr.param<std::string>("right_wheel_name", m_right_wheel_name, "right_wheel");
+  // Prepare join state message
+  m_js.name.push_back(m_left_wheel_name);
+  m_js.name.push_back(m_right_wheel_name);
+  m_js.position.resize(2);
+  m_joint_states_pub =  nh.advertise<sensor_msgs::JointState>("joint_states", 10);
   // Create joint state handles
-  hardware_interface::JointStateHandle state_handle_left_wheel("left_wheel", &m_joint_pos_l, &m_joint_vel_l, &m_joint_eff_l);
+  hardware_interface::JointStateHandle state_handle_left_wheel(m_left_wheel_name, &m_joint_pos_l, &m_joint_vel_l, &m_joint_eff_l);
   hardware_interface::JointHandle handle_left_wheel(state_handle_left_wheel, &m_cmd_vel_l);
   m_hw.registerHandle(handle_left_wheel);
-  hardware_interface::JointStateHandle state_handle_right_wheel("right_wheel", &m_joint_pos_r, &m_joint_vel_r, &m_joint_eff_r);
+  hardware_interface::JointStateHandle state_handle_right_wheel(m_right_wheel_name, &m_joint_pos_r, &m_joint_vel_r, &m_joint_eff_r);
   hardware_interface::JointHandle handle_right_wheel(state_handle_right_wheel, &m_cmd_vel_r);
   m_hw.registerHandle(handle_right_wheel);
   m_diff_drive->init(&m_hw, nh, nr);
 
-  nr.param<double>("wheel_separation", m_wheel_separation, 0.5);
-  nr.param<double>("wheel_radius", m_wheel_radius, 0.05);
+
 
   m_cmd_vel_sub = nh.subscribe("cmd_vel", 1, &MotorCommand::cmdVelCallback, this);
   // Setup serial connection
-  if ((fd = serialOpen("/dev/ttyAMA1", 19200)) < 0)
+  if ((m_fd = serialOpen("/dev/ttyAMA1", 19200)) < 0)
   {
     ROS_ERROR_STREAM("Unable to open serial device.");
     return;
@@ -64,9 +73,9 @@ void MotorCommand::getJointState(void)
     int count = 0;
     // Check Crc
     uint8_t buffer[num_bytes];
-    while (serialDataAvail(fd) && count < num_bytes)
+    while (serialDataAvail(m_fd) && count < num_bytes)
     {
-      uint8_t received_byte = serialGetchar(fd);
+      uint8_t received_byte = serialGetchar(m_fd);
       if (received_byte  == '/')
       {
         count = 0;
@@ -83,7 +92,11 @@ void MotorCommand::getJointState(void)
           {
             m_joint_pos_l = -(double)((int32_t)((buffer[1] << 24) | (buffer[2] << 16) | (buffer[3] << 8) | buffer[4])) / 30.0 * M_PI;
             m_joint_pos_r = (double)((int32_t)((buffer[5] << 24) | (buffer[6] << 16) | (buffer[7] << 8) | buffer[8])) / 30.0 * M_PI;
-            m_diff_drive->update(ros::Time::now(), ros::Duration(0));
+            // Publish and Update Joint State
+            m_js.header.stamp = ros::Time::now();
+            m_js.position[0] = m_joint_pos_l; 
+            m_js.position[1] = m_joint_pos_r; 
+            m_joint_states_pub.publish(m_js);
             ROS_DEBUG_STREAM("Got new Joint States. M: " << m_joint_pos_l << " rad. S: " << m_joint_pos_r << " rad");
           }
         }
@@ -174,7 +187,7 @@ uint16_t MotorCommand::calcCRC(uint8_t *ptr, int count)
 
 void MotorCommand::sendBuffer(uint8_t buffer[], uint8_t length)
 {
-  auto written = write(fd, buffer, length);
+  auto written = write(m_fd, buffer, length);
 }
 
 }
