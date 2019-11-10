@@ -53,7 +53,9 @@ private:
     int32_t speedValueS = 0;
     double m_cmd_vel_l = 0;
     double m_cmd_vel_r = 0;
-    
+    double m_left_wheel_ticks;
+    double m_right_wheel_ticks;
+
     // Joint State
     double m_joint_pos_l = 0;
     double m_joint_pos_r = 0;
@@ -61,7 +63,7 @@ private:
     double m_joint_vel_r = 0;
     double m_joint_eff_l = 0;
     double m_joint_eff_r = 0;    
-    // BMS INfo
+    // BMS INFO
     float m_bat_current = 0;
     float m_bat_voltage = 0;
     // LED stuff

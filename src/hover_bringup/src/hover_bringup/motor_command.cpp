@@ -22,6 +22,9 @@ void MotorCommand::init(void)
   nr.param<double>("wheel_radius", m_wheel_radius, 0.05);
   nr.param<std::string>("left_wheel", m_left_wheel_name, "left_wheel");
   nr.param<std::string>("right_wheel", m_right_wheel_name, "right_wheel");
+  nr.param<double>("right_wheel_ticks", m_right_wheel_ticks, 30.0);
+  nr.param<double>("left_wheel_ticks", m_left_wheel_ticks, 30.0);
+
   // Prepare join state message
   m_js.name.push_back(m_left_wheel_name);
   m_js.name.push_back(m_right_wheel_name);
@@ -94,8 +97,8 @@ void MotorCommand::getJointState(void)
           uint16_t crc = calcCRC(buffer, num_bytes - 3);
           if ( buffer[num_bytes - 3] == ((crc >> 8) & 0xFF) && buffer[num_bytes - 2] == (crc & 0xFF))
           {
-            m_joint_pos_l = -(double)((int32_t)((buffer[1] << 24) | (buffer[2] << 16) | (buffer[3] << 8) | buffer[4])) / 30.0 * M_PI;
-            m_joint_pos_r = (double)((int32_t)((buffer[5] << 24) | (buffer[6] << 16) | (buffer[7] << 8) | buffer[8])) / 30.0 * M_PI;
+            m_joint_pos_l = -(double)((int32_t)((buffer[1] << 24) | (buffer[2] << 16) | (buffer[3] << 8) | buffer[4])) / m_left_wheel_ticks * M_PI;
+            m_joint_pos_r = (double)((int32_t)((buffer[5] << 24) | (buffer[6] << 16) | (buffer[7] << 8) | buffer[8])) / m_right_wheel_ticks * M_PI;
             m_bat_current = (float)((int16_t)((buffer[9] << 8) | buffer[10])) / 100.0;
             m_bat_voltage = (float)((int16_t)((buffer[11] << 8) | buffer[12])) / 100.0;
             std_msgs::Float32 bat_info;
@@ -109,6 +112,7 @@ void MotorCommand::getJointState(void)
             m_js.position[1] = m_joint_pos_r; 
             m_joint_states_pub.publish(m_js);
             ROS_DEBUG_STREAM("Got new Joint States. M: " << m_joint_pos_l << " rad. S: " << m_joint_pos_r << " rad");
+            m_diff_drive->update(ros::Time::now(), ros::Duration(0));
           }
         }
         else
