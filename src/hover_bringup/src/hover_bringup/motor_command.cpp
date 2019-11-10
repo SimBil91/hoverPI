@@ -26,7 +26,14 @@ void MotorCommand::init(void)
   m_js.name.push_back(m_left_wheel_name);
   m_js.name.push_back(m_right_wheel_name);
   m_js.position.resize(2);
-  m_joint_states_pub =  nh.advertise<sensor_msgs::JointState>("joint_states", 10);
+  
+  // Publisher
+  m_joint_states_pub = nh.advertise<sensor_msgs::JointState>("joint_states", 10);
+  m_bat_current_pub = nh.advertise<std_msgs::Float32>("BMS/I", 10);
+  m_bat_voltage_pub = nh.advertise<std_msgs::Float32>("BMS/U", 10);
+  // Subscriber
+  m_cmd_vel_sub = nh.subscribe("cmd_vel", 1, &MotorCommand::cmdVelCallback, this);
+
   // Create joint state handles
   hardware_interface::JointStateHandle state_handle_left_wheel(m_left_wheel_name, &m_joint_pos_l, &m_joint_vel_l, &m_joint_eff_l);
   hardware_interface::JointHandle handle_left_wheel(state_handle_left_wheel, &m_cmd_vel_l);
@@ -36,7 +43,6 @@ void MotorCommand::init(void)
   m_hw.registerHandle(handle_right_wheel);
   m_diff_drive->init(&m_hw, nh, nr);
 
-  m_cmd_vel_sub = nh.subscribe("cmd_vel", 1, &MotorCommand::cmdVelCallback, this);
   // Setup serial connection
   if ((m_fd = serialOpen("/dev/ttyAMA1", 19200)) < 0)
   {
@@ -90,9 +96,13 @@ void MotorCommand::getJointState(void)
           {
             m_joint_pos_l = -(double)((int32_t)((buffer[1] << 24) | (buffer[2] << 16) | (buffer[3] << 8) | buffer[4])) / 30.0 * M_PI;
             m_joint_pos_r = (double)((int32_t)((buffer[5] << 24) | (buffer[6] << 16) | (buffer[7] << 8) | buffer[8])) / 30.0 * M_PI;
-            m_bat_current = (double)((int16_t)((buffer[9] << 8) | buffer[10])) / 100.0;
-            m_bat_voltage = (double)((int16_t)((buffer[11] << 8) | buffer[12])) / 100.0;
-
+            m_bat_current = (float)((int16_t)((buffer[9] << 8) | buffer[10])) / 100.0;
+            m_bat_voltage = (float)((int16_t)((buffer[11] << 8) | buffer[12])) / 100.0;
+            std_msgs::Float32 bat_info;
+            bat_info.data = m_bat_current;
+            m_bat_current_pub.publish(bat_info);
+            bat_info.data = m_bat_voltage;
+            m_bat_voltage_pub.publish(bat_info);
             // Publish and Update Joint State
             m_js.header.stamp = ros::Time::now();
             m_js.position[0] = m_joint_pos_l; 

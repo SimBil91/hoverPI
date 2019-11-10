@@ -6,6 +6,7 @@
 #include <geometry_msgs/Twist.h>
 #include <diff_drive_controller/diff_drive_controller.h>
 #include <sensor_msgs/JointState.h>
+#include <std_msgs/Float32.h>
 
 #define ABS(a) (((a) < 0.0) ? -(a) : (a))
 #define CLAMP(x, low, high) (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
@@ -61,8 +62,8 @@ private:
     double m_joint_eff_l = 0;
     double m_joint_eff_r = 0;    
     // BMS INfo
-    double m_bat_current = 0;
-    double m_bat_voltage = 0;
+    float m_bat_current = 0;
+    float m_bat_voltage = 0;
     // LED stuff
     uint8_t upperLEDMaster = 0;
     uint8_t lowerLEDMaster = 0;
@@ -73,8 +74,13 @@ private:
     uint8_t beepsBackwards = 0;
     uint8_t activateWeakening = 0;
     int m_fd;
+    // Subscriber
     ros::Subscriber m_cmd_vel_sub;
+    // Publisher
     ros::Publisher m_joint_states_pub;
+    ros::Publisher m_bat_current_pub;
+    ros::Publisher m_bat_voltage_pub;
+
     sensor_msgs::JointState m_js;
     geometry_msgs::Twist m_current_cmd_vel;
     double m_wheel_radius;
