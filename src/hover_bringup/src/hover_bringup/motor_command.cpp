@@ -36,8 +36,6 @@ void MotorCommand::init(void)
   m_hw.registerHandle(handle_right_wheel);
   m_diff_drive->init(&m_hw, nh, nr);
 
-
-
   m_cmd_vel_sub = nh.subscribe("cmd_vel", 1, &MotorCommand::cmdVelCallback, this);
   // Setup serial connection
   if ((m_fd = serialOpen("/dev/ttyAMA1", 19200)) < 0)
@@ -69,7 +67,7 @@ void MotorCommand::setSpeed(int32_t speedM, int32_t speedS)
 
 void MotorCommand::getJointState(void)
 {
-    const int num_bytes = 12;
+    const int num_bytes = 16;
     int count = 0;
     // Check Crc
     uint8_t buffer[num_bytes];
@@ -92,6 +90,9 @@ void MotorCommand::getJointState(void)
           {
             m_joint_pos_l = -(double)((int32_t)((buffer[1] << 24) | (buffer[2] << 16) | (buffer[3] << 8) | buffer[4])) / 30.0 * M_PI;
             m_joint_pos_r = (double)((int32_t)((buffer[5] << 24) | (buffer[6] << 16) | (buffer[7] << 8) | buffer[8])) / 30.0 * M_PI;
+            m_bat_current = (double)((int16_t)((buffer[9] << 8) | buffer[10])) / 100.0;
+            m_bat_voltage = (double)((int16_t)((buffer[11] << 8) | buffer[12])) / 100.0;
+
             // Publish and Update Joint State
             m_js.header.stamp = ros::Time::now();
             m_js.position[0] = m_joint_pos_l; 
