@@ -100,8 +100,8 @@ void MotorCommand::sendJointCommands(void)
   // Set Speed according to current CmdVel
   double v_l, v_r;
   int32_t speedL, speedR;
-  speedL = 50 * (m_current_cmd_vel.linear.x - m_wheel_separation / 2 * m_current_cmd_vel.angular.z) / m_wheel_radius;
-  speedR = 50 * (m_current_cmd_vel.linear.x + m_wheel_separation / 2 * m_current_cmd_vel.angular.z) / m_wheel_radius;
+  speedL = 20 * (m_current_cmd_vel.linear.x - m_wheel_separation / 2 * m_current_cmd_vel.angular.z) / m_wheel_radius;
+  speedR = 20 * (m_current_cmd_vel.linear.x + m_wheel_separation / 2 * m_current_cmd_vel.angular.z) / m_wheel_radius;
   setSpeed(speedL, speedR);
   ROS_DEBUG_STREAM_THROTTLE(0.1, speedL << " " << speedR);
   int index = 0;
