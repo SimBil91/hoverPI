@@ -216,8 +216,8 @@
 
   <!-- Wheel Definitions -->
 
-  <wheel fb="front" lr="right" parent="base_link" translateX="0" translateY="-0.5" flipY="1"/>
-  <wheel fb="front" lr="left" parent="base_link" translateX="0" translateY="0.5" flipY="1"/>
+  <wheel lr="right" parent="base_link" translateX="0" translateY="-0.5" flipY="1"/>
+  <wheel lr="left" parent="base_link" translateX="0" translateY="0.5" flipY="1"/>
 
   <!-- SENSORS -->
 

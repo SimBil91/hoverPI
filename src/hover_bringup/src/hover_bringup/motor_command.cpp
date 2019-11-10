@@ -20,8 +20,8 @@ void MotorCommand::init(void)
   // Load Params
   nr.param<double>("wheel_separation", m_wheel_separation, 0.5);
   nr.param<double>("wheel_radius", m_wheel_radius, 0.05);
-  nr.param<std::string>("left_wheel_name", m_left_wheel_name, "left_wheel");
-  nr.param<std::string>("right_wheel_name", m_right_wheel_name, "right_wheel");
+  nr.param<std::string>("left_wheel", m_left_wheel_name, "left_wheel");
+  nr.param<std::string>("right_wheel", m_right_wheel_name, "right_wheel");
   // Prepare join state message
   m_js.name.push_back(m_left_wheel_name);
   m_js.name.push_back(m_right_wheel_name);
