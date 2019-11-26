@@ -13,6 +13,38 @@ void MotorCommand::cmdVelCallback(const geometry_msgs::TwistConstPtr& vel)
   m_current_cmd_vel = *vel;   
 }
 
+std::vector<uint8_t> MotorCommand::getConfigCyclic()
+{
+  std::vector<uint8_t> output;
+  uint8_t identifier = m_current_config_identifier;
+  output.push_back(identifier);
+  int16_t val = 0;
+  // Fill in value based on identifier
+  switch(identifier)
+  {
+    case Config_Identifier::PID_P:
+      val = m_pid_p * 100;
+    break;
+    case Config_Identifier::PID_I:
+      val = m_pid_i * 100;
+    break;
+    case Config_Identifier::PID_D:
+      val = m_pid_d * 100;
+    break;
+  }
+  uint8_t first_byte = ((val >> 8) & 0xFF);
+  uint8_t second_byte = val & 0xFF;
+  output.push_back(first_byte);
+  output.push_back(second_byte);
+  m_current_config_identifier++;
+  if (m_current_config_identifier == Config_Identifier::NUM_ENTRIES)
+  {
+    // Wrap loop
+    m_current_config_identifier = 0;
+  }
+  return output;
+}
+
 void MotorCommand::init(void)
 {
   ros::NodeHandle nh;
@@ -66,6 +98,17 @@ void MotorCommand::init(void)
   {
     ROS_INFO_STREAM("Serial Communication Setup complete.");
   }
+  //m_dyn_reconfigure_server = std::make_shared<dynamic_reconfigure::Server<hover_bringup::MotorConfig>>();
+  // Dynamic Reconfigure
+  //*m_dyn_callback_type = boost::bind(&MotorCommand::dynReconfigureCallback, this, _1, _2);
+  //m_dyn_reconfigure_server->setCallback(*m_dyn_callback_type);
+}
+
+void MotorCommand::dynReconfigureCallback(hover_bringup::MotorConfig &config, uint32_t level)
+{   
+    m_pid_p = config.PID_P;
+    m_pid_i = config.PID_I;
+    m_pid_d = config.PID_D;
 }
 
 void MotorCommand::setSpeed(int32_t speedM, int32_t speedS)
@@ -97,8 +140,8 @@ void MotorCommand::getJointState(void)
           uint16_t crc = calcCRC(buffer, num_bytes - 3);
           if ( buffer[num_bytes - 3] == ((crc >> 8) & 0xFF) && buffer[num_bytes - 2] == (crc & 0xFF))
           {
-            m_joint_pos_l = -(double)((int32_t)((buffer[1] << 24) | (buffer[2] << 16) | (buffer[3] << 8) | buffer[4])) / m_left_wheel_ticks * M_PI;
-            m_joint_pos_r = (double)((int32_t)((buffer[5] << 24) | (buffer[6] << 16) | (buffer[7] << 8) | buffer[8])) / m_right_wheel_ticks * M_PI;
+            m_joint_pos_l = -(double)((int32_t)((buffer[1] << 24) | (buffer[2] << 16) | (buffer[3] << 8) | buffer[4])) / m_left_wheel_ticks * 2 * M_PI;
+            m_joint_pos_r = (double)((int32_t)((buffer[5] << 24) | (buffer[6] << 16) | (buffer[7] << 8) | buffer[8]))  / m_right_wheel_ticks * 2 * M_PI;
             m_bat_current = (float)((int16_t)((buffer[9] << 8) | buffer[10])) / 100.0;
             m_bat_voltage = (float)((int16_t)((buffer[11] << 8) | buffer[12])) / 100.0;
             std_msgs::Float32 bat_info;
@@ -128,12 +171,12 @@ void MotorCommand::sendJointCommands(void)
   // Set Speed according to current CmdVel
   double v_l, v_r;
   int32_t speedL, speedR;
-  speedL = 20 * (m_current_cmd_vel.linear.x - m_wheel_separation / 2 * m_current_cmd_vel.angular.z) / m_wheel_radius;
-  speedR = 20 * (m_current_cmd_vel.linear.x + m_wheel_separation / 2 * m_current_cmd_vel.angular.z) / m_wheel_radius;
+  speedL = m_left_wheel_ticks *  (m_current_cmd_vel.linear.x - m_wheel_separation / 2 * m_current_cmd_vel.angular.z) / m_wheel_radius / 2;
+  speedR = m_right_wheel_ticks * (m_current_cmd_vel.linear.x + m_wheel_separation / 2 * m_current_cmd_vel.angular.z) / m_wheel_radius / 2;
   setSpeed(speedL, speedR);
   ROS_DEBUG_STREAM_THROTTLE(0.1, speedL << " " << speedR);
   int index = 0;
-  uint8_t buffer[8];
+  uint8_t buffer[11];
   uint8_t byte1 = 0;
   uint8_t byte2 = 0;
   uint8_t byte3 = 0;
@@ -163,7 +206,10 @@ void MotorCommand::sendJointCommands(void)
   buffer[index++] = byte2;
   buffer[index++] = byte3;
   buffer[index++] = byte4;
-  //buffer[index++] = sendByte;
+  auto config = getConfigCyclic();
+  buffer[index++] = config[0];
+  buffer[index++] = config[1];
+  buffer[index++] = config[2];
 
   // Calculate CRC
   uint16_t crc = calcCRC(buffer, index);

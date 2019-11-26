@@ -15,8 +15,8 @@
     <param name="wheel_radius" value="0.09"/>
     <param name="left_wheel" value="left_wheel_joint"/>
     <param name="right_wheel" value="right_wheel_joint"/>
-    <param name="left_wheel_ticks" value="30"/>
-    <param name="right_wheel_ticks" value="30"/>
+    <param name="left_wheel_ticks" value="80"/>
+    <param name="right_wheel_ticks" value="80"/>
 
     <param name="publish_rate" value="50"/>
     <remap from="~odom" to="/odom" />

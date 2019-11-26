@@ -7,16 +7,22 @@
 #include <diff_drive_controller/diff_drive_controller.h>
 #include <sensor_msgs/JointState.h>
 #include <std_msgs/Float32.h>
+#include <dynamic_reconfigure/server.h>
+#include <hover_bringup/MotorConfig.h>
 
 #define ABS(a) (((a) < 0.0) ? -(a) : (a))
 #define CLAMP(x, low, high) (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 #define MAP(x, xMin, xMax, yMin, yMax) ((x - xMin) * (yMax - yMin) / (xMax - xMin) + yMin)
+
+
 
 namespace hover_bringup
 {
 class MotorCommand
 {
     public:
+    enum Config_Identifier {PID_P, PID_I, PID_D, LED_L, LED_R, BUZZER, NUM_ENTRIES};
+    
     MotorCommand();
     //----------------------------------------------------------------------------
     // Initializes the steering serial
@@ -44,6 +50,11 @@ class MotorCommand
     void getJointState();
 
     void cmdVelCallback(const geometry_msgs::TwistConstPtr&  vel);
+
+    std::vector<uint8_t> getConfigCyclic();
+
+    void dynReconfigureCallback(hover_bringup::MotorConfig &config, uint32_t level);
+
 
 private:
     void sendBuffer(uint8_t buffer[], uint8_t length);
@@ -91,6 +102,20 @@ private:
     std::string m_right_wheel_name;
     hardware_interface::VelocityJointInterface m_hw;
     std::shared_ptr<diff_drive_controller::DiffDriveController> m_diff_drive;
+    
+    // Config Vals
+    int m_current_config_identifier = 0;
+    float m_pid_p = 1;
+    float m_pid_d = 0;
+    float m_pid_i = 0.02;
+    bool m_led_l;
+    bool m_led_r;
+    int16_t m_buzzer;
+
+    // Dyn reconfigure
+    std::shared_ptr<dynamic_reconfigure::Server<hover_bringup::MotorConfig> > m_dyn_reconfigure_server;
+    std::shared_ptr<dynamic_reconfigure::Server<hover_bringup::MotorConfig>::CallbackType > m_dyn_callback_type;
+
 };
 
 }
