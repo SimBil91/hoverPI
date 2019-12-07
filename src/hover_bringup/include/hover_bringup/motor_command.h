@@ -4,17 +4,17 @@
 #include <inttypes.h>
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
-#include <diff_drive_controller/diff_drive_controller.h>
+#include <diff_drive_controller/odometry.h>
 #include <sensor_msgs/JointState.h>
 #include <std_msgs/Float32.h>
 #include <dynamic_reconfigure/server.h>
 #include <hover_bringup/MotorConfig.h>
+#include <nav_msgs/Odometry.h>
+#include <tf/transform_broadcaster.h>
 
 #define ABS(a) (((a) < 0.0) ? -(a) : (a))
 #define CLAMP(x, low, high) (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 #define MAP(x, xMin, xMax, yMin, yMax) ((x - xMin) * (yMax - yMin) / (xMax - xMin) + yMin)
-
-
 
 namespace hover_bringup
 {
@@ -93,6 +93,8 @@ private:
     ros::Publisher m_joint_states_pub;
     ros::Publisher m_bat_current_pub;
     ros::Publisher m_bat_voltage_pub;
+    ros::Publisher m_odom_pub;
+    tf::TransformBroadcaster m_odom_broadcaster;
 
     sensor_msgs::JointState m_js;
     geometry_msgs::Twist m_current_cmd_vel;
@@ -100,21 +102,20 @@ private:
     double m_wheel_separation;
     std::string m_left_wheel_name;
     std::string m_right_wheel_name;
-    hardware_interface::VelocityJointInterface m_hw;
-    std::shared_ptr<diff_drive_controller::DiffDriveController> m_diff_drive;
+    std::shared_ptr<diff_drive_controller::Odometry> m_diff_drive;
     
     // Config Vals
     int m_current_config_identifier = 0;
-    float m_pid_p = 1;
+    float m_pid_p = 4;
     float m_pid_d = 0;
-    float m_pid_i = 0.02;
+    float m_pid_i = 0;
     bool m_led_l;
     bool m_led_r;
     int16_t m_buzzer;
 
     // Dyn reconfigure
     std::shared_ptr<dynamic_reconfigure::Server<hover_bringup::MotorConfig> > m_dyn_reconfigure_server;
-    std::shared_ptr<dynamic_reconfigure::Server<hover_bringup::MotorConfig>::CallbackType > m_dyn_callback_type;
+    dynamic_reconfigure::Server<hover_bringup::MotorConfig>::CallbackType m_dyn_callback_type;
 
 };
 
