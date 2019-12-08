@@ -64,7 +64,8 @@ void MotorCommand::init(void)
   
   // Publisher
   m_joint_states_pub = nh.advertise<sensor_msgs::JointState>("joint_states", 10);
-  m_bat_current_pub = nh.advertise<std_msgs::Float32>("BMS/I", 10);
+  m_left_motor_current_pub = nh.advertise<std_msgs::Float32>("BMS/left/I", 10);
+  m_right_motor_current_pub = nh.advertise<std_msgs::Float32>("BMS/right/I", 10);
   m_bat_voltage_pub = nh.advertise<std_msgs::Float32>("BMS/U", 10);
   m_odom_pub = nh.advertise<nav_msgs::Odometry>("odom", 50);
 
@@ -75,7 +76,7 @@ void MotorCommand::init(void)
   m_diff_drive->setWheelParams(m_wheel_separation, m_wheel_radius, m_wheel_radius);
 
   // Setup serial connection
-  if ((m_fd = serialOpen("/dev/ttyAMA1", 19200)) < 0)
+  if ((m_fd = serialOpen("/dev/ttyAMA1", 38400)) < 0)
   {
     ROS_ERROR_STREAM("Unable to open serial device.");
     return;
@@ -107,16 +108,10 @@ void MotorCommand::dynReconfigureCallback(hover_bringup::MotorConfig &config, ui
     m_pid_d = config.PID_D;
 }
 
-void MotorCommand::setSpeed(int32_t speedM, int32_t speedS)
-{
-  speedValueM = CLAMP(speedM, -1000, 1000); 
-  speedValueS = CLAMP(speedS, -1000, 1000); 
-}
-
 void MotorCommand::getJointState(void)
 {
     auto time = ros::Time::now();
-    const int num_bytes = 16;
+    const int num_bytes = 15;
     int count = 0;
     // Check Crc
     uint8_t buffer[num_bytes];
@@ -137,15 +132,41 @@ void MotorCommand::getJointState(void)
           uint16_t crc = calcCRC(buffer, num_bytes - 3);
           if ( buffer[num_bytes - 3] == ((crc >> 8) & 0xFF) && buffer[num_bytes - 2] == (crc & 0xFF))
           {
-            m_joint_pos_l = (double)((int32_t)((buffer[1] << 24) | (buffer[2] << 16) | (buffer[3] << 8) | buffer[4])) / m_left_wheel_ticks * 2 * M_PI;
-            m_joint_pos_r = -(double)((int32_t)((buffer[5] << 24) | (buffer[6] << 16) | (buffer[7] << 8) | buffer[8]))  / m_right_wheel_ticks * 2 * M_PI;
-            m_bat_current = (float)((int16_t)((buffer[9] << 8) | buffer[10])) / 100.0;
-            m_bat_voltage = (float)((int16_t)((buffer[11] << 8) | buffer[12])) / 100.0;
+            float left_tick_speed, right_tick_speed;
+            m_joint_pos_l = (double)((int32_t)((buffer[1] << 24) | (buffer[2] << 16) | (buffer[3] << 8) | buffer[4])) / m_left_wheel_ticks *  M_PI;
+            m_joint_pos_r = -(double)((int32_t)((buffer[5] << 24) | (buffer[6] << 16) | (buffer[7] << 8) | buffer[8]))  / m_right_wheel_ticks * M_PI;
+            // Process additional Info 
+            uint8_t identifier = buffer[9];
+            int16_t value =  (buffer[10] << 8) | buffer[11];
             std_msgs::Float32 bat_info;
-            bat_info.data = m_bat_current;
-            m_bat_current_pub.publish(bat_info);
-            bat_info.data = m_bat_voltage;
-            m_bat_voltage_pub.publish(bat_info);
+            switch(identifier)
+            {
+              case Additional_Info::BAT_U:
+                m_bat_voltage = (float)value / 100;
+                bat_info.data = m_bat_voltage;
+                m_bat_voltage_pub.publish(bat_info);
+                break;
+              case Additional_Info::MOT_L_I:
+                m_left_wheel_current = (float)value / 100;
+                bat_info.data = m_left_wheel_current;
+                m_left_motor_current_pub.publish(bat_info);
+                break;
+              case Additional_Info::MOT_R_I:
+                m_right_wheel_current = (float)value / 100;
+                bat_info.data = m_right_wheel_current;
+                m_right_motor_current_pub.publish(bat_info);
+                break;
+              case Additional_Info::MOT_L_V:
+                left_tick_speed = (float)value / 100;
+                ROS_INFO_STREAM("Left Desired|Measured: " << m_speed_l << "|" << left_tick_speed);
+                break;
+              case Additional_Info::MOT_R_V:
+                right_tick_speed = (float)value / 100;
+                ROS_INFO_STREAM("Right Desired|Measured: " << m_speed_r << "|" << right_tick_speed);
+                break;
+              default:
+                break;
+            }
             // Publish and Update Joint State
             m_js.header.stamp = time;
             m_js.position[0] = m_joint_pos_l; 
@@ -191,11 +212,9 @@ void MotorCommand::sendJointCommands(void)
 {
   // Set Speed according to current CmdVel
   double v_l, v_r;
-  int32_t speedL, speedR;
-  speedL = m_left_wheel_ticks *  (m_current_cmd_vel.linear.x - m_wheel_separation / 2 * m_current_cmd_vel.angular.z) / m_wheel_radius / 2 / M_PI;
-  speedR = m_right_wheel_ticks * (m_current_cmd_vel.linear.x + m_wheel_separation / 2 * m_current_cmd_vel.angular.z) / m_wheel_radius / 2 / M_PI;
-  setSpeed(speedL, speedR);
-  ROS_DEBUG_STREAM_THROTTLE(0.1, speedL << " " << speedR);
+  m_speed_l = CLAMP((int32_t)(m_left_wheel_ticks *  (m_current_cmd_vel.linear.x - m_wheel_separation / 2 * m_current_cmd_vel.angular.z) / m_wheel_radius / 2 / M_PI), -1000, 1000); 
+  m_speed_r = CLAMP((int32_t)(m_right_wheel_ticks * (m_current_cmd_vel.linear.x + m_wheel_separation / 2 * m_current_cmd_vel.angular.z) / m_wheel_radius / 2 / M_PI), -1000, 1000); 
+  ROS_DEBUG_STREAM_THROTTLE(0.1, m_speed_l << " " << m_speed_r);
   int index = 0;
   uint8_t buffer[11];
   uint8_t byte1 = 0;
@@ -213,13 +232,11 @@ void MotorCommand::sendJointCommands(void)
   sendByte |= (lowerLEDMaster << 1);
   sendByte |= (upperLEDMaster << 0);
   
-  uint16_t speedValueM_Format = (uint16_t)(speedValueM);
-  byte1 |= (speedValueM_Format >> 8) & 0xFF;
-  byte2 |= speedValueM_Format & 0xFF;
+  byte1 |= (m_speed_l >> 8) & 0xFF;
+  byte2 |= m_speed_l & 0xFF;
 
-  uint16_t speedValueS_Format = (uint16_t)(speedValueS);
-  byte3 |= (speedValueS_Format >> 8) & 0xFF;
-  byte4 |= speedValueS_Format & 0xFF;
+  byte3 |= (m_speed_r >> 8) & 0xFF;
+  byte4 |= m_speed_r & 0xFF;
   
   // Send answer
   buffer[index++] = '/';

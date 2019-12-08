@@ -22,17 +22,13 @@ class MotorCommand
 {
     public:
     enum Config_Identifier {PID_P, PID_I, PID_D, LED_L, LED_R, BUZZER, NUM_ENTRIES};
-    
+    enum Additional_Info {BAT_U, MOT_L_I, MOT_R_I, MOT_L_V, MOT_R_V};
+
     MotorCommand();
     //----------------------------------------------------------------------------
     // Initializes the steering serial
     //----------------------------------------------------------------------------
     void init();
-
-    //----------------------------------------------------------------------------
-    // Sets the speed value
-    //----------------------------------------------------------------------------
-    void setSpeed(int32_t speedM, int32_t speedS);
 
     //----------------------------------------------------------------------------
     // Sets the steering value
@@ -60,8 +56,6 @@ private:
     void sendBuffer(uint8_t buffer[], uint8_t length);
     uint16_t calcCRC(uint8_t *ptr, int count);
 
-    int32_t speedValueM = 0;
-    int32_t speedValueS = 0;
     double m_cmd_vel_l = 0;
     double m_cmd_vel_r = 0;
     double m_left_wheel_ticks;
@@ -75,7 +69,9 @@ private:
     double m_joint_eff_l = 0;
     double m_joint_eff_r = 0;    
     // BMS INFO
-    float m_bat_current = 0;
+    float m_left_wheel_current = 0;
+    float m_right_wheel_current = 0;
+
     float m_bat_voltage = 0;
     // LED stuff
     uint8_t upperLEDMaster = 0;
@@ -91,7 +87,8 @@ private:
     ros::Subscriber m_cmd_vel_sub;
     // Publisher
     ros::Publisher m_joint_states_pub;
-    ros::Publisher m_bat_current_pub;
+    ros::Publisher m_left_motor_current_pub;
+    ros::Publisher m_right_motor_current_pub;
     ros::Publisher m_bat_voltage_pub;
     ros::Publisher m_odom_pub;
     tf::TransformBroadcaster m_odom_broadcaster;
@@ -112,7 +109,8 @@ private:
     bool m_led_l;
     bool m_led_r;
     int16_t m_buzzer;
-
+    int32_t m_speed_l = 0;
+    int32_t m_speed_r = 0;
     // Dyn reconfigure
     std::shared_ptr<dynamic_reconfigure::Server<hover_bringup::MotorConfig> > m_dyn_reconfigure_server;
     dynamic_reconfigure::Server<hover_bringup::MotorConfig>::CallbackType m_dyn_callback_type;
