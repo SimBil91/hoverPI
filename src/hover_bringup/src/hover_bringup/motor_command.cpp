@@ -180,7 +180,8 @@ void MotorCommand::getJointState(void)
 
             // Populate odom message and publish
             nav_msgs::Odometry odom_message;
-
+            odom_message.header.frame_id = "odom";
+            odom_message.child_frame_id = "base_link";
             odom_message.header.stamp = time;
             odom_message.pose.pose.position.x = m_diff_drive->getX();
             odom_message.pose.pose.position.y = m_diff_drive->getY();
