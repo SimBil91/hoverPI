@@ -133,8 +133,12 @@ void MotorCommand::getJointState(void)
           if ( buffer[num_bytes - 3] == ((crc >> 8) & 0xFF) && buffer[num_bytes - 2] == (crc & 0xFF))
           {
             float left_tick_speed, right_tick_speed;
-            m_joint_pos_l = (double)((int32_t)((buffer[1] << 24) | (buffer[2] << 16) | (buffer[3] << 8) | buffer[4])) / m_left_wheel_ticks *  M_PI;
-            m_joint_pos_r = -(double)((int32_t)((buffer[5] << 24) | (buffer[6] << 16) | (buffer[7] << 8) | buffer[8]))  / m_right_wheel_ticks * M_PI;
+            int32_t current_ticks_left = (int32_t)((buffer[1] << 24) | (buffer[2] << 16) | (buffer[3] << 8) | buffer[4]);
+            int32_t current_ticks_right = (int32_t)((buffer[5] << 24) | (buffer[6] << 16) | (buffer[7] << 8) | buffer[8]);
+            m_joint_pos_l = (double)(current_ticks_left) / m_left_wheel_ticks * 2 * M_PI;
+            m_joint_pos_r = -(double)(current_ticks_right)  / m_right_wheel_ticks * 2 * M_PI;
+            ROS_DEBUG_STREAM_THROTTLE(0.5, "Current Ticks: Left: " << current_ticks_left << " | Right: " << current_ticks_right);
+
             // Process additional Info 
             uint8_t identifier = buffer[9];
             int16_t value =  (buffer[10] << 8) | buffer[11];
@@ -158,11 +162,11 @@ void MotorCommand::getJointState(void)
                 break;
               case Additional_Info::MOT_L_V:
                 left_tick_speed = (float)value / 100;
-                ROS_INFO_STREAM("Left Desired|Measured: " << m_speed_l << "|" << left_tick_speed);
+                ROS_DEBUG_STREAM("Left Desired|Measured: " << m_speed_l << "|" << left_tick_speed);
                 break;
               case Additional_Info::MOT_R_V:
                 right_tick_speed = (float)value / 100;
-                ROS_INFO_STREAM("Right Desired|Measured: " << m_speed_r << "|" << right_tick_speed);
+                ROS_DEBUG_STREAM("Right Desired|Measured: " << m_speed_r << "|" << right_tick_speed);
                 break;
               default:
                 break;
@@ -172,7 +176,6 @@ void MotorCommand::getJointState(void)
             m_js.position[0] = m_joint_pos_l; 
             m_js.position[1] = m_joint_pos_r; 
             m_joint_states_pub.publish(m_js);
-            ROS_DEBUG_STREAM("Got new Joint States. M: " << m_joint_pos_l << " rad. S: " << m_joint_pos_r << " rad");
             m_diff_drive->update(m_joint_pos_l, m_joint_pos_r, time);
             // Compute and store orientation info
             const geometry_msgs::Quaternion orientation(
@@ -213,8 +216,8 @@ void MotorCommand::sendJointCommands(void)
 {
   // Set Speed according to current CmdVel
   double v_l, v_r;
-  m_speed_l = CLAMP((int32_t)(m_left_wheel_ticks *  (m_current_cmd_vel.linear.x - m_wheel_separation / 2 * m_current_cmd_vel.angular.z) / m_wheel_radius / 2 / M_PI), -1000, 1000); 
-  m_speed_r = CLAMP((int32_t)(m_right_wheel_ticks * (m_current_cmd_vel.linear.x + m_wheel_separation / 2 * m_current_cmd_vel.angular.z) / m_wheel_radius / 2 / M_PI), -1000, 1000); 
+  m_speed_l = CLAMP((int32_t)(m_left_wheel_ticks *  (m_current_cmd_vel.linear.x - m_wheel_separation / 2 * m_current_cmd_vel.angular.z) / m_wheel_radius / 4 / M_PI), -1000, 1000); 
+  m_speed_r = CLAMP((int32_t)(m_right_wheel_ticks * (m_current_cmd_vel.linear.x + m_wheel_separation / 2 * m_current_cmd_vel.angular.z) / m_wheel_radius / 4 / M_PI), -1000, 1000); 
   ROS_DEBUG_STREAM_THROTTLE(0.1, m_speed_l << " " << m_speed_r);
   int index = 0;
   uint8_t buffer[11];
