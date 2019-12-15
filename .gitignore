@@ -37,3 +37,5 @@ src/external
 *.exe
 *.out
 *.app
+
+CATKIN_IGNORE
