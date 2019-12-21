@@ -7,7 +7,7 @@
      <!-- MAP SERVER -->
    <node name="map_server" pkg="map_server" type="map_server" args="$(find hover_navigation)/maps/$(arg env)/map.yaml" output="screen" />
 
-   <group if="$(arg sim)">
+   <group unless="$(arg sim)">
    <!-- AMCL -->
    <node pkg="amcl" type="amcl" name="amcl" output="screen">
       <remap from="scan" to="laserscan" />
@@ -41,7 +41,7 @@
       <param name="recovery_alpha_fast" value="0.0"/>       
    </node>
 </group>
-<group unless="$(arg sim)">
+<group if="$(arg sim)">
   <!-- Run fake localization compatible with AMCL output -->
   <node pkg="fake_localization" type="fake_localization" name="fake_localization" output="screen" />
 </group>
