@@ -1,0 +1,7 @@
+<launch>
+  <node pkg="laser_filters" type="scan_to_scan_filter_chain" output="screen" name="laser_filter">
+    <remap from="scan" to="laserscan_raw" />
+    <remap from="scan_filtered" to="laserscan" />
+    <rosparam command="load" file="$(find hover_bringup)/config/laserscan_box_filter.yaml" />
+  </node>
+</launch>

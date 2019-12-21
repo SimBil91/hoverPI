@@ -2,15 +2,18 @@
 
   <!-- launch robot state publisher -->
   <param name="robot_description" command="$(find xacro)/xacro $(find hover_bringup)/urdf/hoverpi.urdf.xacro" />
-  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" /> 
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
 
   <!-- velocity smoother -->
   <include file="$(find hover_bringup)/launch/velocity_smoother.launch" />
 
+  <!-- laser filter -->
+  <include file="$(find hover_bringup)/launch/laser_filter.launch" />
+
   <!-- Teleop-->
   <include file="$(find hover_bringup)/launch/teleop.launch" />
 
-  <node name="motor_interface" pkg="hover_bringup" type="motor_interface_node" output="screen" >
+  <node name="motor_interface" pkg="hover_bringup" type="motor_interface_node" output="screen">
     <param name="wheel_separation" value="0.525"/>
     <param name="wheel_radius" value="0.0847"/>
     <param name="left_wheel" value="left_wheel_joint"/>
@@ -26,13 +29,20 @@
   </node>
 
   <!-- Laser Scanner RPLidar -->
-  <node name="rplidarNode"          pkg="rplidar_ros"  type="rplidarNode" output="screen">
-    <param name="serial_port"         type="string" value="/dev/ttyUSB0"/>  
-    <param name="serial_baudrate"     type="int"    value="115200"/><!--A1/A2 -->
-    <param name="frame_id"            type="string" value="base_laser_link"/>
-    <param name="inverted"            type="bool"   value="false"/>
-    <param name="angle_compensate"    type="bool"   value="true"/>
-    <param name="scan_mode"           type="string" value="Boost"/>
-    <remap from="scan" to="laserscan" />
+  <node name="rplidarNode" pkg="rplidar_ros" type="rplidarNode" output="screen">
+    <param name="serial_port" type="string" value="/dev/ttyUSB0"/>
+    <param name="serial_baudrate" type="int" value="115200"/>
+    <!--A1/A2 -->
+    <param name="frame_id" type="string" value="base_laser_link"/>
+    <param name="inverted" type="bool" value="false"/>
+    <param name="angle_compensate" type="bool" value="true"/>
+    <param name="scan_mode" type="string" value="Boost"/>
+    <remap from="scan" to="laserscan_raw" />
+  </node>
+
+  <node pkg="laser_filters" type="scan_to_scan_filter_chain" output="screen" name="laser_filter">
+    <remap from="scan" to="laserscan_raw" />
+    <remap from="scan_filtered" to="laserscan" />
+    <rosparam command="load" file="$(find hover_bringup)/config/laserscan_box_filter.yaml" />
   </node>
 </launch>

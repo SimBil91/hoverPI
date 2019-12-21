@@ -2,6 +2,6 @@
 
   <!-- launch robot state publisher -->
   <param name="robot_description" command="$(find xacro)/xacro $(find hover_bringup)/urdf/hoverpi.urdf.xacro" />
-  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" /> 
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
 
 </launch>
