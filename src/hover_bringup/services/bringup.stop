@@ -1,0 +1,10 @@
+#!/bin/bash
+
+NAME=bringup
+
+log_path="/home/pi/data/logs"
+PID=$(cat $log_path/$NAME.pid)
+logger -p user.info "Attempting to stop hover (PID $PID)"
+kill $PID
+logger -s -p user.info "Waiting for roslaunch process to end"
+while kill -0 $PID 2>/dev/null; do sleep 0.2; done

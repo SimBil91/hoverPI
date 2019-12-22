@@ -1,0 +1,46 @@
+#!/bin/bash
+
+NAME=bringup
+
+function log() {
+  logger -s -p user.$1 ${@:2}
+}
+
+log info "$NAME: Using workspace setup file /home/pi/data/hoverPI/devel/setup.bash"
+source /home/pi/data/hoverPI/devel/setup.bash
+
+log_path="/home/pi/data/logs"
+if [[ ! -d $log_path ]]; then
+  CREATED_LOGDIR=true
+  trap 'CREATED_LOGDIR=false' ERR
+    log warn "$NAME: The log directory you specified \"$log_path\" does not exist. Attempting to create."
+    mkdir -p $log_path 2>/dev/null
+    chown pi:pi $log_path 2>/dev/null
+    chmod ug+wr $log_path 2>/dev/null
+  trap - ERR
+  # if log_path could not be created, default to tmp
+  if [[ $CREATED_LOGDIR == false ]]; then
+    log warn "$NAME: The log directory you specified \"$log_path\" cannot be created. Defaulting to \"/tmp\"!"
+    log_path="/tmp"
+  fi
+fi
+
+export ROS_HOSTNAME=$(hostname)
+
+export ROS_MASTER_URI=http://127.0.0.1:11311
+export ROS_HOME=${ROS_HOME:=$(echo ~pi)/.ros}
+export ROS_LOG_DIR=$log_path/
+
+log info "$NAME: Launching ROS_HOSTNAME=$ROS_HOSTNAME, ROS_IP=$ROS_IP, ROS_MASTER_URI=$ROS_MASTER_URI, ROS_HOME=$ROS_HOME, ROS_LOG_DIR=$log_path"
+
+# Punch it.
+su -c "roslaunch hover_bringup bringup.launch & echo \$! > $log_path/$NAME.pid" pi
+
+PID="$(cat $log_path/$NAME.pid)"
+log info "$NAME: Started roslaunch as background process, PID $PID, ROS_LOG_DIR=$ROS_LOG_DIR"
+
+while kill -0 "$PID" 2>/dev/null; do
+    sleep 1
+done
+
+log info "$NAME: Service finished."
