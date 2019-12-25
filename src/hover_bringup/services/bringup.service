@@ -1,0 +1,11 @@
+[Unit]
+Description="HoverPI Bringup"
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/home/pi/data/hoverPI/src/hover_bringup/services/bringup.start
+ExecStop=/home/pi/data/hoverPI/src/hover_bringup/services/bringup.stop
+
+[Install]
+WantedBy=multi-user.target
