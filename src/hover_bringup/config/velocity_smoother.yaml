@@ -8,7 +8,7 @@ speed_lim_vx: 1.0
 speed_lim_vy: 1.0
 speed_lim_w: 0.8
 
-accel_lim_vx: 0.1
+accel_lim_vx: 0.3
 accel_lim_vy: 0.5
 accel_lim_w: 0.3
 
