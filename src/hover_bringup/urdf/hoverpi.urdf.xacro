@@ -233,7 +233,7 @@
     </visual>
   </link>
   <joint name="rplidar_joint" type="fixed">
-    <origin xyz="${ - laser_size/2} 0 ${base_height+laser_size/4 + laser_height}" rpy="0 0 ${M_PI}" />
+    <origin xyz="${ - laser_size/2} 0 ${base_height+laser_size/4 + laser_height}" rpy="0 0 0" />
     <parent link="base_link"/>
     <child link="base_laser_link" />
   </joint>
