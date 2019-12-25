@@ -2,7 +2,7 @@
 
 <launch>  
    <arg name="sim" default="false" />
-   <arg name="env" default="$(optenv ROBOT_ENV home)" /> 
+   <arg name="env" default="$(optenv ROBOT_ENV fass)" /> 
      
      <!-- MAP SERVER -->
    <node name="map_server" pkg="map_server" type="map_server" args="$(find hover_navigation)/maps/$(arg env)/map.yaml" output="screen" />
