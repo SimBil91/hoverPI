@@ -1,10 +1,14 @@
 <launch>
     <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+        <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS" />
+        <param name= "controller_frequency" value="10" type="double"/> 
+        <remap from= "cmd_vel" to="cmd_vel_filter"/> 
+
         <rosparam file="$(find hover_navigation)/config/costmap_common_params.yaml" command="load" ns="global_costmap" /> 
         <rosparam file="$(find hover_navigation)/config/costmap_common_params.yaml" command="load" ns="local_costmap" />
         <rosparam file="$(find hover_navigation)/config/local_costmap_params.yaml" command="load" />
         <rosparam file="$(find hover_navigation)/config/global_costmap_params.yaml" command="load" /> 
-        <rosparam file="$(find hover_navigation)/config/base_local_planner_params.yaml" command="load" />
+        <rosparam file="$(find hover_navigation)/config/dwa_local_planner_params.yaml" command="load" />
     </node>
 
 </launch> 

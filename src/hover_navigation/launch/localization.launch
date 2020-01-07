@@ -2,7 +2,7 @@
 
 <launch>  
    <arg name="sim" default="false" />
-   <arg name="env" default="$(optenv ROBOT_ENV fass)" /> 
+   <arg name="env" default="$(optenv ROBOT_ENV home)" /> 
      
      <!-- MAP SERVER -->
    <node name="map_server" pkg="map_server" type="map_server" args="$(find hover_navigation)/maps/$(arg env)/map.yaml" output="screen" />
@@ -13,7 +13,6 @@
       <remap from="scan" to="laserscan" />
       <param name="odom_model_type" value="diff"/>
       <param name="odom_alpha5" value="0.13"/>
-      <param name="transform_tolerance" value="0.2" />
       <param name="laser_max_beams" value="30"/>
       <param name="min_particles" value="100"/>
       <param name="max_particles" value="5000"/>
@@ -33,10 +32,10 @@
       <param name="update_min_d" value="0.2"/>
       <param name="update_min_a" value="0.5"/>
       <param name="global_frame_id" value="/map"/>
-      <param name="base_frame_id" value="/base_link"/>
+      <param name="base_frame_id" value="/base_footprint"/>
       <param name="odom_frame_id" value="odom"/>
       <param name="resample_interval" value="1"/>
-      <param name="transform_tolerance" value="0.1"/>
+      <param name="transform_tolerance" value="0.5"/>
       <param name="recovery_alpha_slow" value="0.0"/>
       <param name="recovery_alpha_fast" value="0.0"/>       
    </node>

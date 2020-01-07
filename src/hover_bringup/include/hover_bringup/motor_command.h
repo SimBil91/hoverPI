@@ -11,6 +11,7 @@
 #include <hover_bringup/MotorConfig.h>
 #include <nav_msgs/Odometry.h>
 #include <tf/transform_broadcaster.h>
+#include <hover_bringup/SetOutputInt.h>
 
 #define ABS(a) (((a) < 0.0) ? -(a) : (a))
 #define CLAMP(x, low, high) (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
@@ -21,7 +22,7 @@ namespace hover_bringup
 class MotorCommand
 {
     public:
-    enum Config_Identifier {PID_P, PID_I, PID_D, LED_L, LED_R, BUZZER, NUM_ENTRIES};
+    enum Config_Identifier {PID_P, PID_I, PID_D, LED_L, LED_R, BACK_LED_L, BACK_LED_R, BUZZER, NUM_ENTRIES};
     enum Additional_Info {BAT_U, MOT_L_I, MOT_R_I, MOT_L_V, MOT_R_V};
 
     MotorCommand();
@@ -55,6 +56,8 @@ class MotorCommand
 private:
     void sendBuffer(uint8_t buffer[], uint8_t length);
     uint16_t calcCRC(uint8_t *ptr, int count);
+
+    bool setOutputCB(hover_bringup::SetOutputInt::Request &req, hover_bringup::SetOutputIntResponse &res);
 
     double m_cmd_vel_l = 0;
     double m_cmd_vel_r = 0;
@@ -106,11 +109,15 @@ private:
     float m_pid_p = 4;
     float m_pid_d = 0;
     float m_pid_i = 0;
-    bool m_led_l;
-    bool m_led_r;
-    int16_t m_buzzer;
+    int16_t m_led_l = 0;
+    int16_t m_led_r = 0;
+    int16_t m_back_led_l = 0;
+    int16_t m_back_led_r = 0;
+    int16_t m_buzzer = 0;
     int32_t m_speed_l = 0;
     int32_t m_speed_r = 0;
+    ros::ServiceServer m_output_service;
+    std::string m_robot_frame;
     // Dyn reconfigure
     std::shared_ptr<dynamic_reconfigure::Server<hover_bringup::MotorConfig> > m_dyn_reconfigure_server;
     dynamic_reconfigure::Server<hover_bringup::MotorConfig>::CallbackType m_dyn_callback_type;

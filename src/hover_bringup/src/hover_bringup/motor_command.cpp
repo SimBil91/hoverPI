@@ -30,6 +30,21 @@ std::vector<uint8_t> MotorCommand::getConfigCyclic()
     break;
     case Config_Identifier::PID_D:
       val = m_pid_d * 100;
+    case Config_Identifier::LED_L:
+      val = m_led_l;
+      break;
+    case Config_Identifier::LED_R:
+      val = m_led_r;
+      break;
+    case Config_Identifier::BACK_LED_L:
+      val = m_back_led_l;
+      break;
+    case Config_Identifier::BACK_LED_R:
+      val = m_back_led_r;
+      break;
+    case Config_Identifier::BUZZER:
+      val = m_buzzer;
+      break;
     break;
   }
   uint8_t first_byte = ((val >> 8) & 0xFF);
@@ -45,6 +60,37 @@ std::vector<uint8_t> MotorCommand::getConfigCyclic()
   return output;
 }
 
+bool MotorCommand::setOutputCB(hover_bringup::SetOutputInt::Request  &req, hover_bringup::SetOutputIntResponse &res)
+{
+  if (req.output_name == "LED_L")
+  {
+    m_led_l = req.val;
+  }
+  else if (req.output_name == "BACK_LED_L")
+  {
+    m_back_led_l = req.val;
+  }
+  else if (req.output_name == "LED_R")
+  {
+    m_led_r = req.val;
+  }
+  else if (req.output_name == "BACK_LED_R")
+  {
+    m_back_led_r = req.val;
+  }
+  else if (req.output_name == "BUZZER")
+  {
+    m_buzzer = req.val;
+  }
+  else
+  {
+    res.success = false;
+    return false;
+  }
+  res.success = true;
+  return true;
+}
+
 void MotorCommand::init(void)
 {
   ros::NodeHandle nh;
@@ -56,6 +102,7 @@ void MotorCommand::init(void)
   nr.param<std::string>("right_wheel", m_right_wheel_name, "right_wheel");
   nr.param<double>("right_wheel_ticks", m_right_wheel_ticks, 30.0);
   nr.param<double>("left_wheel_ticks", m_left_wheel_ticks, 30.0);
+  nr.param<std::string>("robot_frame", m_robot_frame, "base_footprint");
 
   // Prepare join state message
   m_js.name.push_back(m_left_wheel_name);
@@ -75,6 +122,8 @@ void MotorCommand::init(void)
   m_diff_drive->setVelocityRollingWindowSize(10);
   m_diff_drive->setWheelParams(m_wheel_separation, m_wheel_radius, m_wheel_radius);
 
+  // Service Server
+  m_output_service = nh.advertiseService("set_output_int", &MotorCommand::setOutputCB, this);
   // Setup serial connection
   if ((m_fd = serialOpen("/dev/ttyAMA1", 38400)) < 0)
   {
@@ -184,7 +233,7 @@ void MotorCommand::getJointState(void)
             // Populate odom message and publish
             nav_msgs::Odometry odom_message;
             odom_message.header.frame_id = "odom";
-            odom_message.child_frame_id = "base_link";
+            odom_message.child_frame_id = m_robot_frame;
             odom_message.header.stamp = time;
             odom_message.pose.pose.position.x = m_diff_drive->getX();
             odom_message.pose.pose.position.y = m_diff_drive->getY();
@@ -197,7 +246,7 @@ void MotorCommand::getJointState(void)
             geometry_msgs::TransformStamped odom_trans;
             odom_trans.header.stamp = time;
             odom_trans.header.frame_id = "odom";
-            odom_trans.child_frame_id = "base_link";
+            odom_trans.child_frame_id = m_robot_frame;
             odom_trans.transform.translation.x = m_diff_drive->getX();
             odom_trans.transform.translation.y = m_diff_drive->getY();
             odom_trans.transform.rotation = orientation;
