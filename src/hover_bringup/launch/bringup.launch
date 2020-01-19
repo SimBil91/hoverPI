@@ -20,6 +20,7 @@
     <param name="right_wheel" value="right_wheel_joint"/>
     <param name="left_wheel_ticks" value="90"/>
     <param name="right_wheel_ticks" value="90"/>
+    <param name="button_pin" value="28"/>
 
     <param name="publish_rate" value="50"/>
     <remap from="~odom" to="/odom" />
@@ -38,6 +39,10 @@
     <param name="angle_compensate" type="bool" value="true"/>
     <param name="scan_mode" type="string" value="Boost"/>
     <remap from="scan" to="laserscan_raw" />
+  </node>
+
+  <!-- Weigh node -->
+  <node name="hover_weight" pkg="hover_bringup" type="hover_weight.py" output="screen" >
   </node>
 
 </launch>

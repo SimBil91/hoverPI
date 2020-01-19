@@ -7,6 +7,7 @@
 #include <diff_drive_controller/odometry.h>
 #include <sensor_msgs/JointState.h>
 #include <std_msgs/Float32.h>
+#include <std_msgs/Bool.h>
 #include <dynamic_reconfigure/server.h>
 #include <hover_bringup/MotorConfig.h>
 #include <nav_msgs/Odometry.h>
@@ -94,6 +95,7 @@ private:
     ros::Publisher m_right_motor_current_pub;
     ros::Publisher m_bat_voltage_pub;
     ros::Publisher m_odom_pub;
+    ros::Publisher m_button_pub;
     tf::TransformBroadcaster m_odom_broadcaster;
 
     sensor_msgs::JointState m_js;
@@ -116,6 +118,7 @@ private:
     int16_t m_buzzer = 0;
     int32_t m_speed_l = 0;
     int32_t m_speed_r = 0;
+    int m_button_pin;
     ros::ServiceServer m_output_service;
     std::string m_robot_frame;
     // Dyn reconfigure

@@ -103,6 +103,7 @@ void MotorCommand::init(void)
   nr.param<double>("right_wheel_ticks", m_right_wheel_ticks, 30.0);
   nr.param<double>("left_wheel_ticks", m_left_wheel_ticks, 30.0);
   nr.param<std::string>("robot_frame", m_robot_frame, "base_footprint");
+  nr.param<int>("button_pin", m_button_pin, 20);
 
   // Prepare join state message
   m_js.name.push_back(m_left_wheel_name);
@@ -115,7 +116,7 @@ void MotorCommand::init(void)
   m_right_motor_current_pub = nh.advertise<std_msgs::Float32>("BMS/right/I", 10);
   m_bat_voltage_pub = nh.advertise<std_msgs::Float32>("BMS/U", 10);
   m_odom_pub = nh.advertise<nav_msgs::Odometry>("odom", 50);
-
+  m_button_pub = nh.advertise<std_msgs::Bool>("button_pressed", 10);
   // Subscriber
   m_cmd_vel_sub = nh.subscribe("cmd_vel", 1, &MotorCommand::cmdVelCallback, this);
   m_diff_drive->init(ros::Time::now());
@@ -142,6 +143,8 @@ void MotorCommand::init(void)
   }
   else
   {
+    pinMode(20, INPUT);
+
     ROS_INFO_STREAM("Serial Communication Setup complete.");
   }
   m_dyn_reconfigure_server = std::make_shared<dynamic_reconfigure::Server<hover_bringup::MotorConfig>>();
@@ -311,6 +314,23 @@ void MotorCommand::sendJointCommands(void)
   buffer[index++] = '\n';
   
   sendBuffer(buffer, index);
+
+  // Read Button
+  bool res = digitalRead(m_button_pin);
+  std_msgs::Bool res_bool;
+  res_bool.data = res;
+  m_button_pub.publish(res_bool);
+  if (res == true)
+  {
+    m_led_l = 4;
+    m_led_r = 4;
+  }
+  else
+  {
+    m_led_l = 0;
+    m_led_r = 0;
+  }
+
 }
 
 uint16_t MotorCommand::calcCRC(uint8_t *ptr, int count)
