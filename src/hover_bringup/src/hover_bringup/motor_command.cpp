@@ -60,35 +60,40 @@ std::vector<uint8_t> MotorCommand::getConfigCyclic()
   return output;
 }
 
-bool MotorCommand::setOutputCB(hover_bringup::SetOutputInt::Request  &req, hover_bringup::SetOutputIntResponse &res)
+bool MotorCommand::setOutputCB(hover_bringup::SetOutputInts::Request  &req, hover_bringup::SetOutputIntsResponse &res)
 {
-  if (req.output_name == "LED_L")
+  for (int i = 0; i < req.output_names.size(); i++)
   {
-    m_led_l = req.val;
-  }
-  else if (req.output_name == "BACK_LED_L")
-  {
-    m_back_led_l = req.val;
-  }
-  else if (req.output_name == "LED_R")
-  {
-    m_led_r = req.val;
-  }
-  else if (req.output_name == "BACK_LED_R")
-  {
-    m_back_led_r = req.val;
-  }
-  else if (req.output_name == "BUZZER")
-  {
-    m_buzzer = req.val;
-  }
-  else
-  {
-    res.success = false;
-    return false;
+    if (req.output_names[i] == "LED_L")
+    {
+      m_led_l = req.vals[i];
+    }
+    else if (req.output_names[i] == "BACK_LED_L")
+    {
+      m_back_led_l = req.vals[i];
+    }
+    else if (req.output_names[i] == "LED_R")
+    {
+      m_led_r = req.vals[i];
+    }
+    else if (req.output_names[i] == "BACK_LED_R")
+    {
+      m_back_led_r = req.vals[i];
+    }
+    else if (req.output_names[i] == "BUZZER")
+    {
+      m_buzzer = req.vals[i];
+    }
+    else
+    {
+      res.success = false;
+      return false;
+    }
   }
   res.success = true;
   return true;
+
+  
 }
 
 void MotorCommand::init(void)
@@ -124,9 +129,9 @@ void MotorCommand::init(void)
   m_diff_drive->setWheelParams(m_wheel_separation, m_wheel_radius, m_wheel_radius);
 
   // Service Server
-  m_output_service = nh.advertiseService("set_output_int", &MotorCommand::setOutputCB, this);
+  m_output_service = nh.advertiseService("set_output_ints", &MotorCommand::setOutputCB, this);
   // Setup serial connection
-  if ((m_fd = serialOpen("/dev/ttyAMA1", 38400)) < 0)
+  if ((m_fd = serialOpen("/dev/ttyAMA1", 19200)) < 0)
   {
     ROS_ERROR_STREAM("Unable to open serial device.");
     return;

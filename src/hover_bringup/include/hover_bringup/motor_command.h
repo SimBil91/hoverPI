@@ -12,7 +12,7 @@
 #include <hover_bringup/MotorConfig.h>
 #include <nav_msgs/Odometry.h>
 #include <tf/transform_broadcaster.h>
-#include <hover_bringup/SetOutputInt.h>
+#include <hover_bringup/SetOutputInts.h>
 
 #define ABS(a) (((a) < 0.0) ? -(a) : (a))
 #define CLAMP(x, low, high) (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
@@ -58,7 +58,7 @@ private:
     void sendBuffer(uint8_t buffer[], uint8_t length);
     uint16_t calcCRC(uint8_t *ptr, int count);
 
-    bool setOutputCB(hover_bringup::SetOutputInt::Request &req, hover_bringup::SetOutputIntResponse &res);
+    bool setOutputCB(hover_bringup::SetOutputInts::Request &req, hover_bringup::SetOutputIntsResponse &res);
 
     double m_cmd_vel_l = 0;
     double m_cmd_vel_r = 0;

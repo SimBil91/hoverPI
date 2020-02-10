@@ -1,0 +1,4 @@
+string[] output_names
+int16[] vals
+---
+bool success

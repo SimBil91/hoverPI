@@ -1,4 +1,0 @@
-string output_name
-int16 val
----
-bool success
