@@ -325,17 +325,6 @@ void MotorCommand::sendJointCommands(void)
   std_msgs::Bool res_bool;
   res_bool.data = res;
   m_button_pub.publish(res_bool);
-  if (res == true)
-  {
-    m_led_l = 4;
-    m_led_r = 4;
-  }
-  else
-  {
-    m_led_l = 0;
-    m_led_r = 0;
-  }
-
 }
 
 uint16_t MotorCommand::calcCRC(uint8_t *ptr, int count)
