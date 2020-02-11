@@ -52,6 +52,8 @@ class MotorCommand
     std::vector<uint8_t> getConfigCyclic();
 
     void dynReconfigureCallback(hover_bringup::MotorConfig &config, uint32_t level);
+    
+    void setLEDCmdVel();
 
 
 private:
@@ -112,7 +114,9 @@ private:
     float m_pid_d = 0;
     float m_pid_i = 0;
     int16_t m_led_l = 0;
+    ros::Time m_led_l_toggle_time;
     int16_t m_led_r = 0;
+    ros::Time m_led_r_toggle_time;
     int16_t m_back_led_l = 0;
     int16_t m_back_led_r = 0;
     int16_t m_buzzer = 0;

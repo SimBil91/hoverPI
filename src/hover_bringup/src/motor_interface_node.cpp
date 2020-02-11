@@ -13,6 +13,7 @@ int main(int argc, char **argv)
   {
     motors.sendJointCommands();
     motors.getJointState();
+    motors.setLEDCmdVel();
     ros::spinOnce();
     loop_rate.sleep();
   }

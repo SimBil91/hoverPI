@@ -6,6 +6,8 @@ namespace hover_bringup
 MotorCommand::MotorCommand()
 {
   m_diff_drive = std::make_shared<diff_drive_controller::Odometry>(); // Rolling window size of 10 for velocity estimation
+  m_led_r_toggle_time = ros::Time::now();
+  m_led_l_toggle_time = m_led_r_toggle_time;
 }
 
 void MotorCommand::cmdVelCallback(const geometry_msgs::TwistConstPtr& vel)
@@ -67,6 +69,54 @@ std::vector<uint8_t> MotorCommand::getConfigCyclic()
     m_current_config_identifier = 0;
   }
   return output;
+}
+
+void MotorCommand::setLEDCmdVel()
+{ 
+  double angular_thres = 0.05;
+  double blink_rate = 2;
+  // Check in which case we are
+  if(m_current_cmd_vel.linear.x > 0 && fabs(m_current_cmd_vel.angular.z) < angular_thres)
+  {
+    // FORWARD
+    m_led_l = 1;
+    m_led_r = 1;
+  }
+  else if (m_current_cmd_vel.linear.x > 0 && m_current_cmd_vel.angular.z > angular_thres)
+  {
+    // Blink left
+    if ((ros::Time::now() - m_led_l_toggle_time).toSec() >= 1.0/blink_rate)
+    {
+      m_led_l ^= 1;
+      m_led_l_toggle_time = ros::Time::now();
+      m_led_r = 0;
+    }
+  }
+  else if (m_current_cmd_vel.linear.x > 0 && m_current_cmd_vel.angular.z < - angular_thres)
+  {
+    // Blink right
+    if ((ros::Time::now() - m_led_r_toggle_time).toSec() >= 1.0/blink_rate)
+    {
+      m_led_r ^= 1;
+      m_led_r_toggle_time = ros::Time::now();
+      m_led_l = 0;
+    }
+  }
+  else if (m_current_cmd_vel.linear.x == 0 && fabs(m_current_cmd_vel.angular.z) > angular_thres)
+  {
+    if ((ros::Time::now() - m_led_r_toggle_time).toSec() >= 1.0/blink_rate)
+    {
+      m_led_r ^= 1;
+      m_led_r_toggle_time = ros::Time::now();
+      m_led_l = m_led_r^1;
+      m_led_r_toggle_time = m_led_r_toggle_time;
+    }
+  }
+  else
+  {
+    m_led_l = 0;
+    m_led_r = 0;
+  }
 }
 
 bool MotorCommand::setOutputCB(hover_bringup::SetOutputInts::Request  &req, hover_bringup::SetOutputIntsResponse &res)
