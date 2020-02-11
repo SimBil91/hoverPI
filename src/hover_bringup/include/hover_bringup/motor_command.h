@@ -23,7 +23,7 @@ namespace hover_bringup
 class MotorCommand
 {
     public:
-    enum Config_Identifier {PID_P, PID_I, PID_D, LED_L, LED_R, BACK_LED_L, BACK_LED_R, BUZZER, NUM_ENTRIES};
+    enum Config_Identifier {PID_P, PID_I, PID_D, ALL_LEDS, ENABLE_MOTORS,BUZZER, NUM_ENTRIES, LED_L, LED_R, BACK_LED_L, BACK_LED_R, };
     enum Additional_Info {BAT_U, MOT_L_I, MOT_R_I, MOT_L_V, MOT_R_V};
 
     MotorCommand();
@@ -118,13 +118,13 @@ private:
     int16_t m_buzzer = 0;
     int32_t m_speed_l = 0;
     int32_t m_speed_r = 0;
+    int16_t m_enable_motors = 1;
     int m_button_pin;
     ros::ServiceServer m_output_service;
     std::string m_robot_frame;
     // Dyn reconfigure
     std::shared_ptr<dynamic_reconfigure::Server<hover_bringup::MotorConfig> > m_dyn_reconfigure_server;
     dynamic_reconfigure::Server<hover_bringup::MotorConfig>::CallbackType m_dyn_callback_type;
-
-};
+    };
 
 }

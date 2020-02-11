@@ -33,6 +33,15 @@ std::vector<uint8_t> MotorCommand::getConfigCyclic()
     case Config_Identifier::LED_L:
       val = m_led_l;
       break;
+    case Config_Identifier::ALL_LEDS:
+      val |= m_led_l << 7;
+      val |= m_led_r << 6;
+      val |= m_back_led_l << 4;
+      val |= m_back_led_r << 2;
+      break;
+    case Config_Identifier::ENABLE_MOTORS:
+      val = m_enable_motors;
+      break;
     case Config_Identifier::LED_R:
       val = m_led_r;
       break;
@@ -83,6 +92,10 @@ bool MotorCommand::setOutputCB(hover_bringup::SetOutputInts::Request  &req, hove
     else if (req.output_names[i] == "BUZZER")
     {
       m_buzzer = req.vals[i];
+    }
+    else if (req.output_names[i] == "ENABLE_MOTORS")
+    {
+      m_enable_motors = req.vals[i];
     }
     else
     {
