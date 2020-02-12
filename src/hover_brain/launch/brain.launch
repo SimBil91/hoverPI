@@ -1,0 +1,9 @@
+<launch>
+  <!-- Localization -->
+  <include file="$(find hover_navigation)/launch/localization.launch" />
+
+  <!-- Navigation -->
+  <include file="$(find hover_navigation)/launch/navigation.launch" />
+
+  <node name="statemachine" pkg="hover_brain" type="statemachine_node.py" />
+</launch>
