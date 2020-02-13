@@ -294,7 +294,7 @@ void MotorCommand::getJointState(void)
             // Publish and Update Joint State
             m_js.header.stamp = time;
             m_js.position[0] = m_joint_pos_l; 
-            m_js.position[1] = m_joint_pos_r; 
+            m_js.position[1] = m_joint_pos_r;
             m_joint_states_pub.publish(m_js);
             m_diff_drive->update(m_joint_pos_l, m_joint_pos_r, time);
             // Compute and store orientation info
@@ -322,6 +322,10 @@ void MotorCommand::getJointState(void)
             odom_trans.transform.translation.y = m_diff_drive->getY();
             odom_trans.transform.rotation = orientation;
             m_odom_broadcaster.sendTransform(odom_trans);
+          }
+          else
+          {
+            ROS_WARN_THROTTLE(1.0, "Checksum not correct!");
           }
         }
         else

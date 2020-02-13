@@ -2,6 +2,7 @@ import rospy
 from std_msgs.msg import Float32, Bool
 from hover_bringup.srv import SetOutputInts, SetOutputIntsResponse, SetOutputIntsRequest
 from std_srvs.srv import Trigger, TriggerResponse, TriggerRequest
+from std_srvs.srv import Empty, EmptyRequest
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 import actionlib
 from geometry_msgs.msg import Pose, PoseWithCovarianceStamped
@@ -20,6 +21,8 @@ class HoverStatemachine:
         # SERVICE PROXIES
         self.output_service_proxy = rospy.ServiceProxy('set_output_ints', SetOutputInts)
         self.tare_weight_proxy = rospy.ServiceProxy('tare_weight', Trigger)
+        self.stop_laser = rospy.ServiceProxy('stop_motor', Empty)
+        self.start_laser = rospy.ServiceProxy('start_motor', Empty)
 
         # INTERNAL STATE
         self.empty = True
@@ -49,6 +52,9 @@ class HoverStatemachine:
         self.DRIVE_STATE = 'LOAD'
         self.goal_sent = False
         self.previous_button_event = False
+        rospy.wait_for_service('stop_motor')
+        self.stop_laser.call(EmptyRequest())
+        self.start_laser.call(EmptyRequest())
 
     def weightCB(self, data):
         if data.data > self.min_weight:
