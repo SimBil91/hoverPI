@@ -83,6 +83,13 @@ class HoverStatemachine:
         req.vals = [val, val]
         self.output_service_proxy(req)
 
+
+    def enableMotors(self, val):
+        req = SetOutputIntsRequest()
+        req.output_names = ['ENABLE_MOTORS']
+        req.vals = [val]
+        self.output_service_proxy(req)
+
     def sendPose(self, pose):
         goal = MoveBaseGoal()
         goal.target_pose.header.frame_id = "map"
@@ -91,14 +98,18 @@ class HoverStatemachine:
         goal.target_pose.pose.position.y = pose.position.y
         goal.target_pose.pose.orientation.z = pose.orientation.z
         goal.target_pose.pose.orientation.w = pose.orientation.w
+        self.enableMotors(1)
         self.goal_sent = True
         self.client.send_goal(goal)
 
     def update(self, event):
-        if (self.goal_sent and self.client.get_result() == 1):
+        rospy.loginfo(self.driving)
+        if (self.goal_sent == True and self.client.get_state() == 1):
             self.driving = True
         else:
             self.driving = False
+            self.enableMotors(0)
+
         if self.empty == True:
             self.setStatusLEDs(2)
             if self.driving == False and self.DRIVE_STATE != 'LOAD':

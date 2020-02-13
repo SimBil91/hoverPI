@@ -5,5 +5,5 @@
   <!-- Navigation -->
   <include file="$(find hover_navigation)/launch/navigation.launch" />
 
-  <node name="statemachine" pkg="hover_brain" type="statemachine_node.py" />
+  <node name="statemachine" pkg="hover_brain" type="statemachine_node.py" output="screen"/>
 </launch>
